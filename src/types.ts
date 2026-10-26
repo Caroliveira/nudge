@@ -1,8 +1,7 @@
-
 export enum EffortLevel {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
-  HIGH = 'HIGH'
+  HIGH = 'HIGH',
 }
 
 export type RecurrenceUnit = 'days' | 'weeks' | 'months' | 'years' | 'none';

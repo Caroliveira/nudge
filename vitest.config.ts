@@ -1,9 +1,14 @@
-/// <reference types="vitest" />
+import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -13,7 +18,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'text-summary'],
       include: ['src/**'],
-      exclude: ['src/pages/**', 'src/App.tsx', 'src/main.tsx'],
+      exclude: ['src/views/**', 'src/app/**', 'src/App.tsx', 'src/main.tsx'],
       thresholds: {
         lines: 85,
         functions: 85,

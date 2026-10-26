@@ -29,15 +29,11 @@ describe('TaskForm', () => {
       title: 'Existing Task',
       level: EffortLevel.HIGH,
       recurrenceUnit: 'days' as const,
-      recurrenceInterval: 2
+      recurrenceInterval: 2,
     };
 
     render(
-      <TaskForm
-        onSubmit={mockOnSubmit}
-        onCancel={mockOnCancel}
-        initialValues={initialValues}
-      />
+      <TaskForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} initialValues={initialValues} />,
     );
 
     expect(screen.getByLabelText('Update Task')).toBeInTheDocument();
@@ -62,7 +58,7 @@ describe('TaskForm', () => {
         title: 'New Task',
         level: EffortLevel.MEDIUM,
         recurrenceUnit: 'none',
-        recurrenceInterval: undefined
+        recurrenceInterval: undefined,
       });
     });
   });
@@ -118,12 +114,17 @@ describe('TaskForm', () => {
 
     await user.click(screen.getByText('Save Task'));
 
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
-        recurrenceUnit: 'days',
-        recurrenceInterval: 5
-      }));
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(mockOnSubmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            recurrenceUnit: 'days',
+            recurrenceInterval: 5,
+          }),
+        );
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('calls onCancel when cancel button is clicked', async () => {

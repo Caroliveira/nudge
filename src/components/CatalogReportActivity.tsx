@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -20,26 +22,31 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
     <div className="bg-surface/20 p-6 rounded-3xl border border-surface">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h3 className="text-sm uppercase tracking-widest text-soft font-bold">{t('report.activity')}</h3>
+          <h3 className="text-sm uppercase tracking-widest text-soft font-bold">
+            {t('report.activity')}
+          </h3>
           <p className="text-xs text-soft/60 mt-1">{t('report.activitySubtitle')}</p>
         </div>
 
         {/* Accessible Toggle */}
-        <div className="flex bg-surface/50 rounded-lg p-1 self-start sm:self-auto relative" role="tablist" aria-label={t('report.viewMode')}>
+        <div
+          className="flex bg-surface/50 rounded-lg p-1 self-start sm:self-auto relative"
+          role="tablist"
+          aria-label={t('report.viewMode')}
+        >
           <button
             role="tab"
             aria-selected={viewMode === 'effort'}
             onClick={() => setViewMode('effort')}
-            className={`relative px-3 py-1.5 text-xs font-bold rounded-md transition-colors z-10 ${viewMode === 'effort'
-                ? 'text-text'
-                : 'text-soft hover:text-text'
-              }`}
+            className={`relative px-3 py-1.5 text-xs font-bold rounded-md transition-colors z-10 ${
+              viewMode === 'effort' ? 'text-text' : 'text-soft hover:text-text'
+            }`}
           >
             {viewMode === 'effort' && (
               <motion.div
                 layoutId="activeTab"
                 className="absolute inset-0 bg-white/70 shadow-sm rounded-md"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 style={{ zIndex: -1 }}
               />
             )}
@@ -49,16 +56,15 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
             role="tab"
             aria-selected={viewMode === 'recurrence'}
             onClick={() => setViewMode('recurrence')}
-            className={`relative px-3 py-1.5 text-xs font-bold rounded-md transition-colors z-10 ${viewMode === 'recurrence'
-                ? 'text-text'
-                : 'text-soft hover:text-text'
-              }`}
+            className={`relative px-3 py-1.5 text-xs font-bold rounded-md transition-colors z-10 ${
+              viewMode === 'recurrence' ? 'text-text' : 'text-soft hover:text-text'
+            }`}
           >
             {viewMode === 'recurrence' && (
               <motion.div
                 layoutId="activeTab"
                 className="absolute inset-0 bg-white/70 shadow-sm rounded-md"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 style={{ zIndex: -1 }}
               />
             )}
@@ -88,7 +94,7 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
                 transition={{ duration: 0.2 }}
                 className="flex flex-wrap gap-3"
               >
-                {(Object.values(EffortLevel)).map(level => {
+                {Object.values(EffortLevel).map((level) => {
                   const count = stats.effortDist[level];
                   if (count === 0) return null; // Hide empty stats to reduce noise
 
@@ -99,8 +105,14 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
                       animate={{ scale: 1, opacity: 1 }}
                       className="flex-1 min-w-[100px] flex flex-col items-center justify-center p-4 bg-white/60 rounded-2xl border border-white/50 shadow-sm"
                     >
-                      <span className={`text-3xl font-black ${EFFORT_COLORS[level].split(' ')[0]} mb-1`}>{count}</span>
-                      <span className="text-xs uppercase tracking-wider text-soft font-bold">{t(`effort.short.${level.toLowerCase()}`)}</span>
+                      <span
+                        className={`text-3xl font-black ${EFFORT_COLORS[level].split(' ')[0]} mb-1`}
+                      >
+                        {count}
+                      </span>
+                      <span className="text-xs uppercase tracking-wider text-soft font-bold">
+                        {t(`effort.short.${level.toLowerCase()}`)}
+                      </span>
                     </motion.div>
                   );
                 })}
@@ -115,8 +127,8 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
                 className="flex flex-wrap gap-3"
               >
                 {(Object.keys(RECURRENCE_LABELS) as RecurrenceUnit[])
-                  .filter(unit => stats.recurrenceDist[unit] > 0)
-                  .map(unit => {
+                  .filter((unit) => stats.recurrenceDist[unit] > 0)
+                  .map((unit) => {
                     const count = stats.recurrenceDist[unit];
 
                     return (
@@ -127,7 +139,9 @@ const TodaysActivity: React.FC<TodaysActivityProps> = ({ stats }) => {
                         className="flex-1 min-w-[100px] flex flex-col items-center justify-center p-4 bg-white/60 rounded-2xl border border-white/50 shadow-sm"
                       >
                         <span className="text-3xl font-black text-text mb-1">{count}</span>
-                        <span className="text-xs uppercase tracking-wider text-soft font-bold">{t(`recurrence.${unit}`)}</span>
+                        <span className="text-xs uppercase tracking-wider text-soft font-bold">
+                          {t(`recurrence.${unit}`)}
+                        </span>
                       </motion.div>
                     );
                   })}

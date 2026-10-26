@@ -15,7 +15,7 @@ describe('Celebration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useTaskActions as any).mockReturnValue({
-      backToSelection: mockBackToSelection
+      backToSelection: mockBackToSelection,
     });
   });
 
@@ -28,7 +28,7 @@ describe('Celebration', () => {
   it('renders correct content for LOW level', () => {
     (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.LOW });
     render(<Celebration />);
-    
+
     expect(screen.getByText('Level Cleared')).toBeInTheDocument();
     expect(screen.getByText(/A steady ripple/)).toBeInTheDocument();
   });
@@ -36,14 +36,14 @@ describe('Celebration', () => {
   it('renders correct content for MEDIUM level', () => {
     (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.MEDIUM });
     render(<Celebration />);
-    
+
     expect(screen.getByText('Incredible Progress')).toBeInTheDocument();
   });
 
   it('renders correct content for HIGH level', () => {
     (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.HIGH });
     render(<Celebration />);
-    
+
     expect(screen.getByText('Absolute Powerhouse')).toBeInTheDocument();
   });
 
@@ -51,7 +51,7 @@ describe('Celebration', () => {
     const user = userEvent.setup();
     (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.LOW });
     render(<Celebration />);
-    
+
     await user.click(screen.getByText('Back to Start'));
     expect(mockBackToSelection).toHaveBeenCalled();
   });

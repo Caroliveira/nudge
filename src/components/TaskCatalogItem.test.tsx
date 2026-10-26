@@ -8,49 +8,47 @@ import { SWIPE_CONFIG } from '../constants';
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: vi.fn(({
-      children,
-      onKeyDown,
-      drag: _drag,
-      dragConstraints: _dragConstraints,
-      dragElastic: _dragElastic,
-      dragSnapToOrigin: _dragSnapToOrigin,
-      onDragEnd: _onDragEnd,
-      onDrag: _onDrag,
-      onDragStart: _onDragStart,
-      onAnimationStart: _onAnimationStart,
-      style: _style,
-      ...props
-    }: HTMLMotionProps<"div">) => (
-      <div
-        data-testid="motion-div"
-        onKeyDown={onKeyDown}
-        {...props}
-      >
-        {children as React.ReactNode}
-      </div>
-    )),
-    button: vi.fn(({ children, ...props }) => <button {...props}>{children}</button>)
+    div: vi.fn(
+      ({
+        children,
+        onKeyDown,
+        drag: _drag,
+        dragConstraints: _dragConstraints,
+        dragElastic: _dragElastic,
+        dragSnapToOrigin: _dragSnapToOrigin,
+        onDragEnd: _onDragEnd,
+        onDrag: _onDrag,
+        onDragStart: _onDragStart,
+        onAnimationStart: _onAnimationStart,
+        style: _style,
+        ...props
+      }: HTMLMotionProps<'div'>) => (
+        <div data-testid="motion-div" onKeyDown={onKeyDown} {...props}>
+          {children as React.ReactNode}
+        </div>
+      ),
+    ),
+    button: vi.fn(({ children, ...props }) => <button {...props}>{children}</button>),
   },
   useMotionValue: vi.fn(() => ({
     get: () => 0,
     set: vi.fn(),
     on: vi.fn(),
     onChange: vi.fn(),
-    attach: vi.fn()
+    attach: vi.fn(),
   })),
   useTransform: vi.fn(() => ({
     get: () => 0,
     on: vi.fn(),
     onChange: vi.fn(),
-    attach: vi.fn()
+    attach: vi.fn(),
   })),
   useMotionValueEvent: vi.fn(),
   animate: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('./TaskCatalogActions', () => ({
-  SwipeAction: () => <div data-testid="swipe-action">SwipeAction</div>
+  SwipeAction: () => <div data-testid="swipe-action">SwipeAction</div>,
 }));
 
 describe('TaskCatalogItem', () => {
@@ -72,7 +70,7 @@ describe('TaskCatalogItem', () => {
 
   const simulateSwipe = async (offsetX: number) => {
     const mockMotionDiv = vi.mocked(motion.div);
-    const props = mockMotionDiv.mock.lastCall?.[0] as HTMLMotionProps<"div">;
+    const props = mockMotionDiv.mock.lastCall?.[0] as HTMLMotionProps<'div'>;
     const onDragEnd = props.onDragEnd;
 
     if (!onDragEnd) throw new Error('onDragEnd not defined on motion.div');
@@ -89,7 +87,7 @@ describe('TaskCatalogItem', () => {
         onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
-      />
+      />,
     );
 
     expect(screen.getByText('Test Task')).toBeInTheDocument();
@@ -99,26 +97,14 @@ describe('TaskCatalogItem', () => {
 
   it('calls onToggle when toggle button is clicked', async () => {
     const user = userEvent.setup();
-    render(
-      <TaskCatalogItem
-        task={mockTask}
-        onToggle={mockOnToggle}
-        onDelete={mockOnDelete}
-      />
-    );
+    render(<TaskCatalogItem task={mockTask} onToggle={mockOnToggle} onDelete={mockOnDelete} />);
 
     await user.click(screen.getByLabelText('Mark as complete'));
     expect(mockOnToggle).toHaveBeenCalledWith('1');
   });
 
   it('calls onDelete when swiped left', async () => {
-    render(
-      <TaskCatalogItem
-        task={mockTask}
-        onToggle={mockOnToggle}
-        onDelete={mockOnDelete}
-      />
-    );
+    render(<TaskCatalogItem task={mockTask} onToggle={mockOnToggle} onDelete={mockOnDelete} />);
 
     await simulateSwipe(-(SWIPE_CONFIG.THRESHOLD_PX + 10));
 
@@ -132,7 +118,7 @@ describe('TaskCatalogItem', () => {
         onToggle={mockOnToggle}
         onDelete={mockOnDelete}
         onEdit={mockOnEdit}
-      />
+      />,
     );
 
     await simulateSwipe(SWIPE_CONFIG.THRESHOLD_PX + 10);
@@ -142,13 +128,7 @@ describe('TaskCatalogItem', () => {
 
   it('supports keyboard interaction (Delete)', async () => {
     const user = userEvent.setup();
-    render(
-      <TaskCatalogItem
-        task={mockTask}
-        onToggle={mockOnToggle}
-        onDelete={mockOnDelete}
-      />
-    );
+    render(<TaskCatalogItem task={mockTask} onToggle={mockOnToggle} onDelete={mockOnDelete} />);
 
     const item = screen.getByRole('listitem');
     item.focus();

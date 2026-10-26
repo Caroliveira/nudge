@@ -18,12 +18,12 @@ export function useTaskSession() {
     if (!selectedLevel) return;
 
     const allTasksForLevel = getTasksForLevel(tasks, selectedLevel);
-    const candidates = allTasksForLevel.filter(t => !seenTaskIds.includes(t.id));
+    const candidates = allTasksForLevel.filter((t) => !seenTaskIds.includes(t.id));
 
     const picked = pickRandomTask(candidates);
     if (picked) {
       setCurrentTask(picked);
-      setSeenTaskIds(prev => [...prev, picked.id]);
+      setSeenTaskIds((prev) => [...prev, picked.id]);
     } else setIsExhausted(true);
   }, [selectedLevel, tasks, seenTaskIds, setCurrentTask]);
 

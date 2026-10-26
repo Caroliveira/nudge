@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { isToday } from 'date-fns';
@@ -26,13 +28,7 @@ const removeAccents = (value: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
-const CatalogList: React.FC<CatalogListProps> = ({
-  tasks,
-  view,
-  onToggle,
-  onDelete,
-  onEdit,
-}) => {
+const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDelete, onEdit }) => {
   const { t } = useTranslation();
   const { sortedTasks } = useCatalogFilter(tasks);
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,13 +66,17 @@ const CatalogList: React.FC<CatalogListProps> = ({
   const filteredTasks = useMemo(() => {
     const normalizedQuery = removeAccents(searchQuery);
 
-    return sortedTasks.filter(task => {
+    return sortedTasks.filter((task) => {
       const matchesSearch = removeAccents(task.title).includes(normalizedQuery);
       const taskRecurrence = task.recurrenceUnit ?? 'none';
 
       let matchesStatus = true;
       if (statusFilter === 'TODAY') {
-        matchesStatus = !!(task.isCompleted && task.lastCompletedAt && isToday(task.lastCompletedAt));
+        matchesStatus = !!(
+          task.isCompleted &&
+          task.lastCompletedAt &&
+          isToday(task.lastCompletedAt)
+        );
       } else if (statusFilter === 'AVAILABLE') {
         matchesStatus = !task.isCompleted;
       } else if (statusFilter === 'DONE') {
@@ -190,7 +190,7 @@ const CatalogList: React.FC<CatalogListProps> = ({
       </div>
 
       <ul className="space-y-3 pb-8 relative mt-2">
-        <AnimatePresence initial={false} mode='popLayout'>
+        <AnimatePresence initial={false} mode="popLayout">
           {filteredTasks.length === 0 ? (
             <motion.li
               key="empty-search"

@@ -55,11 +55,15 @@ describe('CatalogTabs', () => {
     const reportTab = screen.getByRole('tab', { name: /report/i });
 
     expect(tasksTab).toContainElement(screen.getByTestId('active-tab-indicator'));
-    expect(reportTab).not.toContainElement(screen.queryByTestId('active-tab-indicator') as HTMLElement);
+    expect(reportTab).not.toContainElement(
+      screen.queryByTestId('active-tab-indicator') as HTMLElement,
+    );
 
     rerender(<CatalogTabs {...mockProps} view="report" />);
 
     expect(reportTab).toContainElement(screen.getByTestId('active-tab-indicator'));
-    expect(tasksTab).not.toContainElement(screen.queryByTestId('active-tab-indicator') as HTMLElement);
+    expect(tasksTab).not.toContainElement(
+      screen.queryByTestId('active-tab-indicator') as HTMLElement,
+    );
   });
 });

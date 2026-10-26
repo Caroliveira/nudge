@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Check, ChevronLeft } from 'lucide-react';
 import { MotionValue } from 'framer-motion';
@@ -41,12 +43,7 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
   );
 
   const renderEditAction = (x: MotionValue<number>, isConfirmed: boolean) => (
-    <SwipeAction
-      x={x}
-      onClick={() => onEdit?.()}
-      {...editAction}
-      isConfirmed={isConfirmed}
-    />
+    <SwipeAction x={x} onClick={() => onEdit?.()} {...editAction} isConfirmed={isConfirmed} />
   );
 
   return (
@@ -58,23 +55,29 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
       renderLeftBackground={onEdit ? renderEditAction : undefined}
     >
       <div
-        className={`flex items-center gap-4 p-4 rounded-xl transition-transform duration-200 ease-out border ${task.isCompleted
-          ? 'bg-warm border-surface'
-          : 'bg-surface border-transparent shadow-sm'
-          }`}
+        className={`flex items-center gap-4 p-4 rounded-xl transition-transform duration-200 ease-out border ${
+          task.isCompleted ? 'bg-warm border-surface' : 'bg-surface border-transparent shadow-sm'
+        }`}
       >
         <button
           type="button"
           onClick={() => onToggle(task.id)}
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${task.isCompleted ? 'bg-accent border-accent text-warm opacity-50' : 'border-soft hover:border-accent bg-warm'
-            }`}
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+            task.isCompleted
+              ? 'bg-accent border-accent text-warm opacity-50'
+              : 'border-soft hover:border-accent bg-warm'
+          }`}
           aria-label={task.isCompleted ? t('task.markAsIncomplete') : t('task.markAsComplete')}
         >
           {task.isCompleted && <Check className="w-4 h-4 text-warm" />}
         </button>
 
-        <div className={`flex-1 min-w-0 pointer-events-none ${task.isCompleted ? 'opacity-50' : ''}`}>
-          <h4 className={`font-medium truncate ${task.isCompleted ? 'line-through text-soft' : 'text-text'}`}>
+        <div
+          className={`flex-1 min-w-0 pointer-events-none ${task.isCompleted ? 'opacity-50' : ''}`}
+        >
+          <h4
+            className={`font-medium truncate ${task.isCompleted ? 'line-through text-soft' : 'text-text'}`}
+          >
             {task.title}
           </h4>
           <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-tighter text-soft mt-1">
@@ -88,7 +91,9 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
         </div>
 
         {/* Slide hint (optional) */}
-        <div className="text-soft opacity-20"><ChevronLeft className="w-6 h-6" /></div>
+        <div className="text-soft opacity-20">
+          <ChevronLeft className="w-6 h-6" />
+        </div>
       </div>
     </SwipeableItem>
   );

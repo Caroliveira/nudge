@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import TaskForm from './TaskForm';
 import CatalogList from './CatalogList';
 import { APP_ROUTES } from '../constants';
@@ -11,7 +13,7 @@ import { useTaskActions } from '../hooks/useTaskActions';
 
 const CatalogTasks: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { tasks, addTask, updateTask, deleteTask } = useStore();
   const { toggleTask } = useTaskActions();
   const [isAdding, setIsAdding] = useState(false);
@@ -28,12 +30,7 @@ const CatalogTasks: React.FC = () => {
   };
 
   if (isAdding) {
-    return (
-      <TaskForm
-        onSubmit={handleAddTask}
-        onCancel={() => setIsAdding(false)}
-      />
-    );
+    return <TaskForm onSubmit={handleAddTask} onCancel={() => setIsAdding(false)} />;
   }
 
   if (editingTask) {
@@ -68,7 +65,7 @@ const CatalogTasks: React.FC = () => {
                 settings: (
                   <button
                     type="button"
-                    onClick={() => navigate(APP_ROUTES.SETTINGS)}
+                    onClick={() => router.push(APP_ROUTES.SETTINGS)}
                     className="underline underline-offset-4 hover:text-accent transition-colors"
                   />
                 ),

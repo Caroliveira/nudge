@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useRef, useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import Papa from 'papaparse';
@@ -6,7 +8,6 @@ import { CsvTaskRow } from '../types';
 import { useStore } from '../store/useStore';
 import { IMPORT_CONFIG } from '../constants';
 import { validateHeaders, processImportedTasks } from '../utils/csvUtils';
-
 
 const CsvImport: React.FC = () => {
   const { t } = useTranslation();
@@ -34,7 +35,11 @@ const CsvImport: React.FC = () => {
     Papa.parse<CsvTaskRow>(file, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (h) => h.replace(/^\uFEFF/, '').trim().toLowerCase(),
+      transformHeader: (h) =>
+        h
+          .replace(/^\uFEFF/, '')
+          .trim()
+          .toLowerCase(),
       complete: (results) => {
         try {
           const { data, meta } = results;
@@ -54,7 +59,8 @@ const CsvImport: React.FC = () => {
 
           tasksToAdd.forEach((task) => addTask(task));
 
-          const skippedMsg = skippedCount > 0 ? t('import.duplicatesSkipped', { count: skippedCount }) : '';
+          const skippedMsg =
+            skippedCount > 0 ? t('import.duplicatesSkipped', { count: skippedCount }) : '';
           setImportStatus(t('import.success', { count, skippedMsg }));
         } catch {
           setImportStatus(t('import.failed'));
@@ -62,15 +68,14 @@ const CsvImport: React.FC = () => {
       },
       error: (error) => {
         setImportStatus(t('import.failedMessage', { message: error.message }));
-      }
+      },
     });
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const downloadTemplate = () => {
-    const csvContent =
-      `data:text/csv;charset=utf-8,title,effort,interval,unit\n${t('import.example1')},low,1,days\n${t('import.example2')},high,1,weeks`;
+    const csvContent = `data:text/csv;charset=utf-8,title,effort,interval,unit\n${t('import.example1')},low,1,days\n${t('import.example2')},high,1,weeks`;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');

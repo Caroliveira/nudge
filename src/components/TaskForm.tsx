@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -38,7 +40,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", bounce: 0.5 }}
+          transition={{ type: 'spring', bounce: 0.5 }}
           className="text-success text-6xl mb-4"
         >
           <Check className="w-16 h-16" />
@@ -57,13 +59,19 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
       aria-label={initialValues ? t('form.update') : t('catalog.addPersonalTask')}
     >
       <div>
-        <label htmlFor="task-title" className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold">{t('form.title')}</label>
+        <label
+          htmlFor="task-title"
+          className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold"
+        >
+          {t('form.title')}
+        </label>
         <motion.input
           id="task-title"
           autoFocus
           animate={errors.title ? shakeAnimation : {}}
-          className={`w-full bg-warm border-none rounded-lg p-3 text-text focus:ring-2 outline-none text-lg ${errors.title ? 'ring-2 ring-red-700' : 'focus:ring-accent'
-            }`}
+          className={`w-full bg-warm border-none rounded-lg p-3 text-text focus:ring-2 outline-none text-lg ${
+            errors.title ? 'ring-2 ring-red-700' : 'focus:ring-accent'
+          }`}
           value={title}
           onChange={(e) => updateTitle(e.target.value)}
           placeholder={t('form.placeholder')}
@@ -73,7 +81,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="task-effort" className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold">{t('form.effort')}</label>
+          <label
+            htmlFor="task-effort"
+            className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold"
+          >
+            {t('form.effort')}
+          </label>
           <select
             id="task-effort"
             className="w-full bg-warm border-none rounded-lg p-3 text-text focus:ring-2 focus:ring-accent outline-none appearance-none"
@@ -88,7 +101,12 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
           </select>
         </div>
         <div>
-          <label htmlFor="task-recurrence-unit" className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold">{t('form.recurrence')}</label>
+          <label
+            htmlFor="task-recurrence-unit"
+            className="block text-xs uppercase tracking-widest text-soft mb-2 font-bold"
+          >
+            {t('form.recurrence')}
+          </label>
           <div className="flex gap-2">
             {recurrenceUnit !== 'none' && (
               <motion.input
@@ -96,8 +114,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
                 type="number"
                 min={1}
                 animate={errors.recurrenceInterval ? shakeAnimation : {}}
-                className={`w-20 bg-warm border-none rounded-lg p-3 text-text focus:ring-2 outline-none ${errors.recurrenceInterval ? 'ring-2 ring-red-700' : 'focus:ring-accent'
-                  }`}
+                className={`w-20 bg-warm border-none rounded-lg p-3 text-text focus:ring-2 outline-none ${
+                  errors.recurrenceInterval ? 'ring-2 ring-red-700' : 'focus:ring-accent'
+                }`}
                 value={recurrenceInterval}
                 onChange={(e) => {
                   const val = e.target.value;

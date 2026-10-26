@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,14 +26,14 @@ const CompletionFeedback: React.FC<CompletionFeedbackProps> = ({ onComplete }) =
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.5, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="flex flex-col items-center justify-center space-y-4"
       >
         <div className="w-24 h-24 bg-success rounded-full flex items-center justify-center shadow-lg">
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
+            transition={{ duration: 0.5, delay: 0.2, type: 'spring' }}
           >
             <Check className="w-12 h-12 text-white" strokeWidth={3} />
           </motion.div>

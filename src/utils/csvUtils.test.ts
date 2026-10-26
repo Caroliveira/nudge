@@ -27,13 +27,13 @@ describe('csvUtils', () => {
         title: 'Existing Task',
         level: EffortLevel.LOW,
         recurrenceUnit: 'none',
-      }
+      },
     ];
 
     it('processes valid tasks correctly', () => {
       const data = [
         { title: 'New Task', effort: 'Low', interval: '1', unit: 'days' },
-        { title: 'Hard Task', effort: 'High', interval: '2', unit: 'weeks' }
+        { title: 'Hard Task', effort: 'High', interval: '2', unit: 'weeks' },
       ];
 
       const result = processImportedTasks(data, existingTasks);
@@ -45,20 +45,20 @@ describe('csvUtils', () => {
         title: 'New Task',
         level: EffortLevel.LOW,
         recurrenceUnit: 'days',
-        recurrenceInterval: 1
+        recurrenceInterval: 1,
       });
       expect(result.tasksToAdd[1]).toMatchObject({
         title: 'Hard Task',
         level: EffortLevel.HIGH,
         recurrenceUnit: 'weeks',
-        recurrenceInterval: 2
+        recurrenceInterval: 2,
       });
     });
 
     it('skips duplicates', () => {
       const data = [
         { title: 'Existing Task', effort: 'Low', interval: '1', unit: 'days' },
-        { title: 'New Task', effort: 'Low', interval: '1', unit: 'days' }
+        { title: 'New Task', effort: 'Low', interval: '1', unit: 'days' },
       ];
 
       const result = processImportedTasks(data, existingTasks);
@@ -75,7 +75,7 @@ describe('csvUtils', () => {
         { title: 'Task', effort: '', interval: '1', unit: 'days' }, // Missing effort
         { title: 'Task', effort: 'Low', interval: 'invalid', unit: 'days' }, // Invalid interval
         { title: 'Task', effort: 'Low', interval: '-1', unit: 'days' }, // Negative interval
-        { title: 'Valid Task', effort: 'Low', interval: '1', unit: 'days' }
+        { title: 'Valid Task', effort: 'Low', interval: '1', unit: 'days' },
       ];
 
       const result = processImportedTasks(data, existingTasks);
@@ -87,7 +87,7 @@ describe('csvUtils', () => {
     it('handles different effort levels case-insensitively', () => {
       const data = [
         { title: 'Medium Task', effort: 'medium', interval: '1', unit: 'days' },
-        { title: 'High Task', effort: 'HIGH', interval: '1', unit: 'days' }
+        { title: 'High Task', effort: 'HIGH', interval: '1', unit: 'days' },
       ];
 
       const result = processImportedTasks(data, existingTasks);
@@ -105,8 +105,8 @@ describe('csvUtils', () => {
           unit: 'weeks',
           iscompleted: 'true',
           lastcompletedat: '1735689600000',
-          nextavailableat: '1735776000000'
-        }
+          nextavailableat: '1735776000000',
+        },
       ];
 
       const result = processImportedTasks(data, existingTasks);
@@ -119,7 +119,7 @@ describe('csvUtils', () => {
         recurrenceUnit: 'weeks',
         isCompleted: true,
         lastCompletedAt: 1735689600000,
-        nextAvailableAt: 1735776000000
+        nextAvailableAt: 1735776000000,
       });
       expect(result.tasksToAdd[0].id).toBeDefined();
     });

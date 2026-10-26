@@ -1,14 +1,16 @@
+'use client';
+
 import React from 'react';
 import { ArrowLeft, FileSpreadsheet, Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { SUPPORTED_LANGUAGES } from '../constants';
 import CsvExport from '@/components/CsvExport';
 import CsvImport from '@/components/CsvImport';
 
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);
@@ -20,7 +22,7 @@ const SettingsPage: React.FC = () => {
         <h1 className="text-3xl serif text-text">{t('settings.title')}</h1>
         <nav aria-label="Settings Back Navigation">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => router.back()}
             className="text-soft hover:text-accent transition-colors flex items-center gap-2 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -64,10 +66,11 @@ const SettingsPage: React.FC = () => {
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
-                  className={`p-4 rounded-xl border transition-all text-left ${i18n.resolvedLanguage === lang.code
-                    ? 'bg-accent text-warm border-accent shadow-md'
-                    : 'bg-surface hover:bg-surface/80 border-transparent text-text hover:shadow-sm'
-                    }`}
+                  className={`p-4 rounded-xl border transition-all text-left ${
+                    i18n.resolvedLanguage === lang.code
+                      ? 'bg-accent text-warm border-accent shadow-md'
+                      : 'bg-surface hover:bg-surface/80 border-transparent text-text hover:shadow-sm'
+                  }`}
                 >
                   <div className="font-bold">{lang.label}</div>
                   {i18n.resolvedLanguage === lang.code && (

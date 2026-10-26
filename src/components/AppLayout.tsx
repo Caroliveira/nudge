@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Settings } from 'lucide-react';
 import { APP_ROUTES } from '../constants';
 
@@ -8,8 +11,8 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const location = useLocation();
-  const isSettingsPage = location.pathname === APP_ROUTES.SETTINGS;
+  const pathname = usePathname();
+  const isSettingsPage = pathname === APP_ROUTES.SETTINGS;
 
   return (
     <main className="min-h-dvh w-full flex flex-col items-center justify-center bg-warm px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] select-none overflow-x-hidden relative">
@@ -20,7 +23,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {!isSettingsPage && (
         <Link
-          to={APP_ROUTES.SETTINGS}
+          href={APP_ROUTES.SETTINGS}
           className="absolute top-6 right-6 p-2 text-soft hover:text-accent transition-colors z-50 rounded-full hover:bg-surface/50"
           aria-label="Settings"
         >
@@ -28,9 +31,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </Link>
       )}
 
-      <div className="z-10 w-full max-w-4xl flex items-center justify-center">
-        {children}
-      </div>
+      <div className="z-10 w-full max-w-4xl flex items-center justify-center">{children}</div>
     </main>
   );
 };

@@ -1,14 +1,17 @@
+'use client';
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useTaskAvailability } from '../hooks/useTaskAvailability';
+import { APP_ROUTES } from '../constants';
 
 const TotalVictory: React.FC = () => {
   const { t } = useTranslation();
   const { nextRefreshDays } = useTaskAvailability();
-  const navigate = useNavigate();
+  const router = useRouter();
 
-  const handleAddMore = () => navigate('/catalog');
+  const handleAddMore = () => router.push(APP_ROUTES.CATALOG);
 
   return (
     <div className="flex flex-col items-center justify-center max-w-2xl mx-auto px-6 text-center space-y-10 fade-in">

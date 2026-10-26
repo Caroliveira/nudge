@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { EffortLevel } from '../types';
@@ -13,12 +15,8 @@ const EffortSelector: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 fade-in">
       <div className="text-center space-y-2">
-        <h1 className="text-4xl md:text-5xl text-text font-light">
-          {t('home.whatCanYouHandle')}
-        </h1>
-        <p className="text-lg text-soft italic">
-          {t('home.selectLevel')}
-        </p>
+        <h1 className="text-4xl md:text-5xl text-text font-light">{t('home.whatCanYouHandle')}</h1>
+        <p className="text-lg text-soft italic">{t('home.selectLevel')}</p>
       </div>
 
       <div className="flex flex-col gap-4 w-full max-w-sm px-4">

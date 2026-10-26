@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { motion, useTransform, useMotionValueEvent, MotionValue } from 'framer-motion';
 
@@ -27,23 +29,18 @@ export const SwipeAction: React.FC<SwipeActionProps> = ({
   isConfirmed = false,
 }) => {
   const [dynamicText, setDynamicText] = useState(baseText);
-  
-  const text = (isConfirmed && successText) ? successText : dynamicText;
-  
-  const isTriggered = (val: number) => 
-    threshold < 0 ? val < threshold : val > threshold;
 
-  const bg = useTransform(x, (val) => 
-    isTriggered(val) ? activeColor : baseColor
-  );
-  
-  const scale = useTransform(x, (val) => 
-    isTriggered(val) ? 1.1 : 1
-  );
+  const text = isConfirmed && successText ? successText : dynamicText;
 
-  useMotionValueEvent(x, "change", (latest) => {
+  const isTriggered = (val: number) => (threshold < 0 ? val < threshold : val > threshold);
+
+  const bg = useTransform(x, (val) => (isTriggered(val) ? activeColor : baseColor));
+
+  const scale = useTransform(x, (val) => (isTriggered(val) ? 1.1 : 1));
+
+  useMotionValueEvent(x, 'change', (latest) => {
     if (isConfirmed && successText) return;
-    
+
     if (isTriggered(latest) && dynamicText !== activeText) setDynamicText(activeText);
     if (!isTriggered(latest) && dynamicText !== baseText) setDynamicText(baseText);
   });

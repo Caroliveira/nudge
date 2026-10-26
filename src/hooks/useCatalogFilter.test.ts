@@ -41,7 +41,7 @@ describe('useCatalogFilter', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
-    }
+    },
   ];
 
   it('returns all tasks for catalog consumption', () => {
@@ -54,7 +54,7 @@ describe('useCatalogFilter', () => {
     // - Recurring Completed (id: 4)
     // - A Task (id: 5)
 
-    const filteredIds = result.current.sortedTasks.map(t => t.id);
+    const filteredIds = result.current.sortedTasks.map((t) => t.id);
     expect(filteredIds).toContain('1');
     expect(filteredIds).toContain('2');
     expect(filteredIds).toContain('3');
@@ -75,7 +75,7 @@ describe('useCatalogFilter', () => {
     //    - One-time Completed (id: 2)
     //    - Recurring Completed (id: 4)
 
-    const filteredIds = result.current.sortedTasks.map(t => t.id);
+    const filteredIds = result.current.sortedTasks.map((t) => t.id);
     expect(filteredIds).toEqual(['5', '1', '3', '2', '4']);
   });
 });

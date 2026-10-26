@@ -13,11 +13,7 @@ describe('EffortLevelButton', () => {
 
   it('renders correctly with available tasks', () => {
     render(
-      <EffortLevelButton 
-        level={EffortLevel.LOW} 
-        availableCount={5} 
-        onSelect={mockOnSelect} 
-      />
+      <EffortLevelButton level={EffortLevel.LOW} availableCount={5} onSelect={mockOnSelect} />,
     );
 
     const button = screen.getByRole('button');
@@ -28,11 +24,7 @@ describe('EffortLevelButton', () => {
 
   it('renders correctly when disabled (no tasks)', () => {
     render(
-      <EffortLevelButton 
-        level={EffortLevel.HIGH} 
-        availableCount={0} 
-        onSelect={mockOnSelect} 
-      />
+      <EffortLevelButton level={EffortLevel.HIGH} availableCount={0} onSelect={mockOnSelect} />,
     );
 
     const button = screen.getByRole('button');
@@ -43,11 +35,7 @@ describe('EffortLevelButton', () => {
   it('calls onSelect when clicked', async () => {
     const user = userEvent.setup();
     render(
-      <EffortLevelButton 
-        level={EffortLevel.MEDIUM} 
-        availableCount={3} 
-        onSelect={mockOnSelect} 
-      />
+      <EffortLevelButton level={EffortLevel.MEDIUM} availableCount={3} onSelect={mockOnSelect} />,
     );
 
     await user.click(screen.getByRole('button'));
@@ -57,18 +45,14 @@ describe('EffortLevelButton', () => {
   it('does not call onSelect when disabled', async () => {
     const user = userEvent.setup();
     render(
-      <EffortLevelButton 
-        level={EffortLevel.MEDIUM} 
-        availableCount={0} 
-        onSelect={mockOnSelect} 
-      />
+      <EffortLevelButton level={EffortLevel.MEDIUM} availableCount={0} onSelect={mockOnSelect} />,
     );
-    
+
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    
+
     await user.click(button).catch(() => {});
-    
+
     expect(mockOnSelect).not.toHaveBeenCalled();
   });
 });

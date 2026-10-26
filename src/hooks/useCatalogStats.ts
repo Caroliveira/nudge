@@ -7,10 +7,7 @@ interface StreakStats {
   bestStreak: number;
 }
 
-export const useCatalogStats = (
-  tasks: Task[],
-  { currentStreak, bestStreak }: StreakStats
-) => {
+export const useCatalogStats = (tasks: Task[], { currentStreak, bestStreak }: StreakStats) => {
   return useMemo(() => {
     const effortDist = {
       [EffortLevel.LOW]: 0,
@@ -19,11 +16,11 @@ export const useCatalogStats = (
     };
 
     const recurrenceDist: Record<RecurrenceUnit, number> = {
-      'days': 0,
-      'weeks': 0,
-      'months': 0,
-      'years': 0,
-      'none': 0
+      days: 0,
+      weeks: 0,
+      months: 0,
+      years: 0,
+      none: 0,
     };
 
     const totalDone = {
@@ -40,7 +37,7 @@ export const useCatalogStats = (
     let hasActivityToday = false;
     const registeredUnits = new Set<RecurrenceUnit>();
 
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       const unit = task.recurrenceUnit || 'none';
       registeredUnits.add(unit);
 

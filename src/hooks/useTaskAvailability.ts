@@ -34,12 +34,12 @@ export function useTaskAvailability() {
       }
     }
 
-    const refreshDays = !hasRecurring ? null : (minDays > 0 ? minDays : 1);
+    const refreshDays = !hasRecurring ? null : minDays > 0 ? minDays : 1;
 
-    return { 
-      availableCounts: counts, 
+    return {
+      availableCounts: counts,
       totalIncomplete: total,
-      nextRefreshDays: refreshDays
+      nextRefreshDays: refreshDays,
     };
   }, [tasks]);
 

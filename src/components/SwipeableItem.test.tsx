@@ -7,41 +7,39 @@ import { SWIPE_CONFIG } from '../constants';
 
 vi.mock('framer-motion', () => ({
   motion: {
-    div: vi.fn(({
-      children,
-      onKeyDown,
-      drag: _drag,
-      dragConstraints: _dragConstraints,
-      dragElastic: _dragElastic,
-      dragSnapToOrigin: _dragSnapToOrigin,
-      onDragEnd: _onDragEnd,
-      onDrag: _onDrag,
-      onDragStart: _onDragStart,
-      onAnimationStart: _onAnimationStart,
-      style: _style,
-      ...props
-    }: HTMLMotionProps<"div">) => (
-      <div
-        data-testid="motion-div"
-        onKeyDown={onKeyDown}
-        {...props}
-      >
-        {children as React.ReactNode}
-      </div>
-    ))
+    div: vi.fn(
+      ({
+        children,
+        onKeyDown,
+        drag: _drag,
+        dragConstraints: _dragConstraints,
+        dragElastic: _dragElastic,
+        dragSnapToOrigin: _dragSnapToOrigin,
+        onDragEnd: _onDragEnd,
+        onDrag: _onDrag,
+        onDragStart: _onDragStart,
+        onAnimationStart: _onAnimationStart,
+        style: _style,
+        ...props
+      }: HTMLMotionProps<'div'>) => (
+        <div data-testid="motion-div" onKeyDown={onKeyDown} {...props}>
+          {children as React.ReactNode}
+        </div>
+      ),
+    ),
   },
   useMotionValue: vi.fn(() => ({
     get: () => 0,
     set: vi.fn(),
     on: vi.fn(),
     onChange: vi.fn(),
-    attach: vi.fn()
+    attach: vi.fn(),
   })),
   useTransform: vi.fn(() => ({
     get: () => 0,
     on: vi.fn(),
     onChange: vi.fn(),
-    attach: vi.fn()
+    attach: vi.fn(),
   })),
   useMotionValueEvent: vi.fn(),
   animate: vi.fn().mockResolvedValue(undefined),
@@ -64,7 +62,7 @@ describe('SwipeableItem', () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Test Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
       expect(screen.getByText('Test Content')).toBeInTheDocument();
     });
@@ -73,7 +71,7 @@ describe('SwipeableItem', () => {
   describe('Drag Interactions', () => {
     const simulateDragEnd = async (offsetX: number) => {
       const mockMotionDiv = vi.mocked(motion.div);
-      const props = mockMotionDiv.mock.lastCall?.[0] as HTMLMotionProps<"div">;
+      const props = mockMotionDiv.mock.lastCall?.[0] as HTMLMotionProps<'div'>;
       const onDragEnd = props.onDragEnd;
 
       if (!onDragEnd) throw new Error('onDragEnd not defined on motion.div');
@@ -87,21 +85,25 @@ describe('SwipeableItem', () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
 
       await simulateDragEnd(-(SWIPE_CONFIG.THRESHOLD_PX + 10));
 
       expect(mockOnSwipeLeft).toHaveBeenCalled();
       expect(mockOnSwipeRight).not.toHaveBeenCalled();
-      expect(animate).toHaveBeenCalledWith(expect.anything(), -window.innerWidth, expect.anything());
+      expect(animate).toHaveBeenCalledWith(
+        expect.anything(),
+        -window.innerWidth,
+        expect.anything(),
+      );
     });
 
     it('triggers onSwipeRight when dragged past positive threshold', async () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
 
       await simulateDragEnd(SWIPE_CONFIG.THRESHOLD_PX + 10);
@@ -115,7 +117,7 @@ describe('SwipeableItem', () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
 
       await simulateDragEnd(SWIPE_CONFIG.THRESHOLD_PX - 10);
@@ -131,7 +133,7 @@ describe('SwipeableItem', () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
 
       const element = screen.getByRole('listitem');
@@ -146,7 +148,7 @@ describe('SwipeableItem', () => {
       render(
         <SwipeableItem {...defaultProps}>
           <div>Content</div>
-        </SwipeableItem>
+        </SwipeableItem>,
       );
 
       const element = screen.getByRole('listitem');

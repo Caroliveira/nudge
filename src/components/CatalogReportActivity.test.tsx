@@ -12,11 +12,11 @@ describe('TodaysActivity', () => {
       [EffortLevel.HIGH]: 0,
     },
     recurrenceDist: {
-      'days': 1,
-      'weeks': 2,
-      'months': 0,
-      'years': 0,
-      'none': 0,
+      days: 1,
+      weeks: 2,
+      months: 0,
+      years: 0,
+      none: 0,
     },
   };
 
@@ -40,7 +40,10 @@ describe('TodaysActivity', () => {
 
     fireEvent.click(screen.getByText('Recurrence'));
 
-    expect(screen.getByText('Recurrence').closest('button')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Recurrence').closest('button')).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     expect(await screen.findByText('Daily')).toBeInTheDocument();
     expect(await screen.findByText('Weekly')).toBeInTheDocument();
   });

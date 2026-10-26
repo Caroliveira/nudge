@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,12 +14,8 @@ const TaskExhausted: React.FC<TaskExhaustedProps> = ({ onReset, onBack }) => {
   return (
     <div className="flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center space-y-12 fade-in">
       <div className="space-y-6">
-        <h2 className="text-3xl md:text-4xl text-accent serif italic">
-          {t('exhausted.title')}
-        </h2>
-        <p className="text-md text-soft max-w-md mx-auto">
-          {t('exhausted.subtitle')}
-        </p>
+        <h2 className="text-3xl md:text-4xl text-accent serif italic">{t('exhausted.title')}</h2>
+        <p className="text-md text-soft max-w-md mx-auto">{t('exhausted.subtitle')}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center gap-4 w-full">

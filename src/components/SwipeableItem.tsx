@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, MotionValue, animate } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -51,15 +53,20 @@ const SwipeableItem: React.FC<SwipeableItemProps> = ({
 
     if (currentX < -threshold && onSwipeLeft) {
       setIsLeftConfirmed(true);
-      await animate(x, -window.innerWidth, { type: "spring", stiffness: 500, damping: 50, mass: 1 });
+      await animate(x, -window.innerWidth, {
+        type: 'spring',
+        stiffness: 500,
+        damping: 50,
+        mass: 1,
+      });
       onSwipeLeft();
     } else if (currentX > threshold && onSwipeRight) {
       setIsRightConfirmed(true);
       onSwipeRight();
-      await animate(x, 0, { type: "spring", stiffness: 500, damping: 50 });
+      await animate(x, 0, { type: 'spring', stiffness: 500, damping: 50 });
       setIsRightConfirmed(false);
     } else {
-      animate(x, 0, { type: "spring", stiffness: 500, damping: 50 });
+      animate(x, 0, { type: 'spring', stiffness: 500, damping: 50 });
     }
   };
 
@@ -67,8 +74,7 @@ const SwipeableItem: React.FC<SwipeableItemProps> = ({
     if ((e.key === 'Delete' || e.key === 'Backspace') && onSwipeLeft) {
       onSwipeLeft();
       e.preventDefault();
-    }
-    else if (e.key === 'Enter' && onSwipeRight) {
+    } else if (e.key === 'Enter' && onSwipeRight) {
       onSwipeRight();
       e.preventDefault();
     }
@@ -88,7 +94,6 @@ const SwipeableItem: React.FC<SwipeableItemProps> = ({
         {onSwipeLeft ? t('swipe.a11yRemove') : ''}
         {onSwipeRight ? t('swipe.a11yEdit') : ''}
       </span>
-
 
       {renderRightBackground && (
         <motion.div
@@ -118,7 +123,7 @@ const SwipeableItem: React.FC<SwipeableItemProps> = ({
         drag="x"
         dragConstraints={{
           left: onSwipeLeft ? -SWIPE_CONFIG.DRAG_CONSTRAINT_PX : 0,
-          right: onSwipeRight ? SWIPE_CONFIG.DRAG_CONSTRAINT_PX : 0
+          right: onSwipeRight ? SWIPE_CONFIG.DRAG_CONSTRAINT_PX : 0,
         }}
         dragElastic={0}
         dragSnapToOrigin={false}

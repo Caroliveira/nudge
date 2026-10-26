@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/useStore';
 import { useTaskActions } from '../hooks/useTaskActions';
@@ -11,10 +13,9 @@ import CompletionFeedback from '../components/CompletionFeedback';
 import TaskExhausted from '../components/TaskExhausted';
 import { APP_ROUTES } from '../constants';
 
-
 const TaskPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
   const { currentTask, selectedLevel } = useStore();
   const { markTaskDone, backToSelection } = useTaskActions();
   const { isExhausted, refreshTask, resetLevel } = useTaskSession();
@@ -50,9 +51,9 @@ const TaskPage: React.FC = () => {
 
   useEffect(() => {
     if (!currentTask && !isExhausted) {
-      navigate(APP_ROUTES.HOME);
+      router.push(APP_ROUTES.HOME);
     }
-  }, [currentTask, isExhausted, navigate]);
+  }, [currentTask, isExhausted, router]);
 
   if (showCelebration) return <Celebration />;
 
@@ -65,20 +66,24 @@ const TaskPage: React.FC = () => {
   return (
     <>
       <AnimatePresence>
-        {isCompleting && (
-          <CompletionFeedback onComplete={handleFeedbackComplete} />
-        )}
+        {isCompleting && <CompletionFeedback onComplete={handleFeedbackComplete} />}
       </AnimatePresence>
 
-      <section className="flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center space-y-12 fade-in" aria-labelledby="task-title">
+      <section
+        className="flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center space-y-12 fade-in"
+        aria-labelledby="task-title"
+      >
         <header className="space-y-6">
-          <h1 id="task-title" className="text-4xl md:text-5xl text-accent serif italic">{currentTask.title}</h1>
-          <p className="text-md text-soft max-w-md mx-auto italic">
-            "{encouragement}"
-          </p>
+          <h1 id="task-title" className="text-4xl md:text-5xl text-accent serif italic">
+            {currentTask.title}
+          </h1>
+          <p className="text-md text-soft max-w-md mx-auto italic">"{encouragement}"</p>
         </header>
 
-        <nav aria-label="Task Actions" className="flex flex-col sm:flex-row items-center gap-4 w-full">
+        <nav
+          aria-label="Task Actions"
+          className="flex flex-col sm:flex-row items-center gap-4 w-full"
+        >
           <button
             onClick={handleMarkDone}
             className="w-full py-4 px-8 bg-success text-warm rounded-full text-lg font-medium hover:bg-success-dark transition-colors shadow-sm active:scale-95"

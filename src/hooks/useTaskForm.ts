@@ -9,8 +9,12 @@ interface UseTaskFormProps {
 export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
   const [title, setTitle] = useState(initialValues?.title || '');
   const [level, setLevel] = useState<EffortLevel>(initialValues?.level || EffortLevel.LOW);
-  const [recurrenceInterval, setRecurrenceInterval] = useState<number | ''>(initialValues?.recurrenceInterval || 1);
-  const [recurrenceUnit, setRecurrenceUnit] = useState<RecurrenceUnit>(initialValues?.recurrenceUnit || 'none');
+  const [recurrenceInterval, setRecurrenceInterval] = useState<number | ''>(
+    initialValues?.recurrenceInterval || 1,
+  );
+  const [recurrenceUnit, setRecurrenceUnit] = useState<RecurrenceUnit>(
+    initialValues?.recurrenceUnit || 'none',
+  );
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -63,10 +67,13 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
       onSubmit({
         title,
         level,
-        recurrenceInterval: recurrenceUnit !== 'none' && recurrenceInterval !== '' ? Number(recurrenceInterval) : undefined,
+        recurrenceInterval:
+          recurrenceUnit !== 'none' && recurrenceInterval !== ''
+            ? Number(recurrenceInterval)
+            : undefined,
         recurrenceUnit,
       });
-      
+
       // Reset form
       setTitle('');
       setRecurrenceInterval(1);

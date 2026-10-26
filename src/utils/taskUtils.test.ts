@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { 
-  getNextAvailableDate, 
-  calculateTaskCompletion, 
-  isTaskAvailable, 
-  pickRandomTask, 
-  isOneTimeTask, 
-  getTasksForLevel 
+import {
+  getNextAvailableDate,
+  calculateTaskCompletion,
+  isTaskAvailable,
+  pickRandomTask,
+  isOneTimeTask,
+  getTasksForLevel,
 } from './taskUtils';
 import { Task, EffortLevel } from '../types';
 import { addDays, addWeeks, addMonths, addYears, startOfDay } from 'date-fns';
@@ -33,34 +33,46 @@ describe('taskUtils', () => {
       const lastCompleted = new Date('2023-01-01T10:00:00');
       const task = { ...mockTask, lastCompletedAt: lastCompleted.getTime() };
       const expected = startOfDay(addDays(lastCompleted, 1));
-      
+
       const result = getNextAvailableDate(task);
       expect(result).toEqual(expected);
     });
 
     it('calculates next date correctly for weekly recurrence', () => {
       const lastCompleted = new Date('2023-01-01T10:00:00');
-      const task = { ...mockTask, recurrenceUnit: 'weeks' as const, lastCompletedAt: lastCompleted.getTime() };
+      const task = {
+        ...mockTask,
+        recurrenceUnit: 'weeks' as const,
+        lastCompletedAt: lastCompleted.getTime(),
+      };
       const expected = startOfDay(addWeeks(lastCompleted, 1));
-      
+
       const result = getNextAvailableDate(task);
       expect(result).toEqual(expected);
     });
 
     it('calculates next date correctly for monthly recurrence', () => {
       const lastCompleted = new Date('2023-01-01T10:00:00');
-      const task = { ...mockTask, recurrenceUnit: 'months' as const, lastCompletedAt: lastCompleted.getTime() };
+      const task = {
+        ...mockTask,
+        recurrenceUnit: 'months' as const,
+        lastCompletedAt: lastCompleted.getTime(),
+      };
       const expected = startOfDay(addMonths(lastCompleted, 1));
-      
+
       const result = getNextAvailableDate(task);
       expect(result).toEqual(expected);
     });
 
     it('calculates next date correctly for yearly recurrence', () => {
       const lastCompleted = new Date('2023-01-01T10:00:00');
-      const task = { ...mockTask, recurrenceUnit: 'years' as const, lastCompletedAt: lastCompleted.getTime() };
+      const task = {
+        ...mockTask,
+        recurrenceUnit: 'years' as const,
+        lastCompletedAt: lastCompleted.getTime(),
+      };
       const expected = startOfDay(addYears(lastCompleted, 1));
-      
+
       const result = getNextAvailableDate(task);
       expect(result).toEqual(expected);
     });
@@ -69,7 +81,7 @@ describe('taskUtils', () => {
   describe('calculateTaskCompletion', () => {
     it('updates task as completed and sets nextAvailableAt for recurring task', () => {
       const result = calculateTaskCompletion(mockTask, true);
-      
+
       expect(result.isCompleted).toBe(true);
       expect(result.lastCompletedAt).toBeDefined();
       expect(result.nextAvailableAt).toBeDefined();
@@ -78,21 +90,21 @@ describe('taskUtils', () => {
     it('updates task as completed but no nextAvailableAt for one-time task', () => {
       const task = { ...mockTask, recurrenceUnit: 'none' as const };
       const result = calculateTaskCompletion(task, true);
-      
+
       expect(result.isCompleted).toBe(true);
       expect(result.lastCompletedAt).toBeDefined();
       expect(result.nextAvailableAt).toBeUndefined();
     });
 
     it('clears completion status when toggled off', () => {
-      const completedTask = { 
-        ...mockTask, 
-        isCompleted: true, 
+      const completedTask = {
+        ...mockTask,
+        isCompleted: true,
         lastCompletedAt: Date.now(),
-        nextAvailableAt: Date.now() 
+        nextAvailableAt: Date.now(),
       };
       const result = calculateTaskCompletion(completedTask, false);
-      
+
       expect(result.isCompleted).toBe(false);
       expect(result.lastCompletedAt).toBeUndefined();
       expect(result.nextAvailableAt).toBeUndefined();
@@ -141,13 +153,13 @@ describe('taskUtils', () => {
       const task1 = { ...mockTask, id: '1' };
       const task2 = { ...mockTask, id: '2' };
       const tasks = [task1, task2];
-      
+
       vi.spyOn(Math, 'random').mockReturnValue(0.1);
       expect(pickRandomTask(tasks)).toEqual(task1);
-      
+
       vi.spyOn(Math, 'random').mockReturnValue(0.9);
       expect(pickRandomTask(tasks)).toEqual(task2);
-      
+
       vi.spyOn(Math, 'random').mockRestore();
     });
   });

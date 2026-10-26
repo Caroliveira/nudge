@@ -22,7 +22,8 @@ vi.mock('react-i18next', () => ({
   }),
   Trans: ({ components }: { components: Record<string, React.ReactElement> }) => (
     <>
-      Or {React.cloneElement(components.settings, {}, 'go to settings')} and import a CSV file to make your life easier.
+      Or {React.cloneElement(components.settings, {}, 'go to settings')} and import a CSV file to
+      make your life easier.
     </>
   ),
 }));
@@ -42,8 +43,10 @@ vi.mock('../hooks/useTaskActions', () => ({
   }),
 }));
 
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockNavigate,
+  }),
 }));
 
 vi.mock('./TaskForm', () => ({
@@ -118,7 +121,9 @@ describe('CatalogTasks', () => {
   });
 
   it('hides quick-import link when tasks exist', () => {
-    storeState.tasks = [{ id: '1', title: 'Task 1', level: 'LOW', isCompleted: false, recurrenceUnit: 'none' }];
+    storeState.tasks = [
+      { id: '1', title: 'Task 1', level: 'LOW', isCompleted: false, recurrenceUnit: 'none' },
+    ];
     render(<CatalogTasks />);
 
     expect(screen.queryByRole('button', { name: /go to settings/i })).not.toBeInTheDocument();

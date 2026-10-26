@@ -1,11 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useStore } from '../store/useStore';
 import { EffortLevel } from '../types';
-import { getTasksForLevel, pickRandomTask, isTaskAvailable, calculateTaskCompletion } from '../utils/taskUtils';
+import {
+  getTasksForLevel,
+  pickRandomTask,
+  isTaskAvailable,
+  calculateTaskCompletion,
+} from '../utils/taskUtils';
 import { APP_ROUTES } from '../constants';
 
 export function useTaskActions() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const {
     tasks,
     selectedLevel,
@@ -24,7 +29,7 @@ export function useTaskActions() {
       if (picked) {
         setSelectedLevel(level);
         setCurrentTask(picked);
-        navigate(APP_ROUTES.TASK);
+        router.push(APP_ROUTES.TASK);
       }
     }
   };
@@ -32,11 +37,11 @@ export function useTaskActions() {
   const backToSelection = () => {
     setSelectedLevel(null);
     setCurrentTask(null);
-    navigate(APP_ROUTES.HOME);
+    router.push(APP_ROUTES.HOME);
   };
 
   const toggleTask = (id: string) => {
-    const task = tasks.find(t => t.id === id);
+    const task = tasks.find((t) => t.id === id);
     if (task) {
       const updated = calculateTaskCompletion(task, !task.isCompleted);
       updateTask(id, updated);
@@ -58,10 +63,8 @@ export function useTaskActions() {
       const freshTasks = useStore.getState().tasks;
       const now = new Date();
 
-      const remainingInLevel = freshTasks.filter(t =>
-        t.id !== currentTask.id &&
-        t.level === selectedLevel &&
-        isTaskAvailable(t, now)
+      const remainingInLevel = freshTasks.filter(
+        (t) => t.id !== currentTask.id && t.level === selectedLevel && isTaskAvailable(t, now),
       ).length;
 
       return { levelCleared: remainingInLevel === 0 };
@@ -73,6 +76,6 @@ export function useTaskActions() {
     selectLevel,
     markTaskDone,
     backToSelection,
-    toggleTask
+    toggleTask,
   };
 }

@@ -12,7 +12,6 @@ vi.mock('../store/useStore', () => ({
   }),
 }));
 
-
 describe('CatalogReport', () => {
   it('renders empty state when no tasks', () => {
     storeState.tasks = [];
@@ -60,7 +59,6 @@ describe('CatalogReport', () => {
     (useCatalogStats as any).mockReturnValue(mockStats);
 
     render(<CatalogReport />);
-
 
     expect(screen.getByText("Today's Activity")).toBeInTheDocument();
     const activityHeader = screen.getByText("Today's Activity");

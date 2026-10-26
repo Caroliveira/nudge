@@ -48,15 +48,17 @@ describe('useCatalogStats', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
-    }
+    },
   ];
 
   it('calculates stats correctly', () => {
-    const { result } = renderHook(() => useCatalogStats(mockTasks, {
-      currentStreak: 2,
-      bestStreak: 5,
-    }));
-    
+    const { result } = renderHook(() =>
+      useCatalogStats(mockTasks, {
+        currentStreak: 2,
+        bestStreak: 5,
+      }),
+    );
+
     // effortDist (completed today)
     expect(result.current.effortDist[EffortLevel.LOW]).toBe(1);
     expect(result.current.effortDist[EffortLevel.MEDIUM]).toBe(0); // completed yesterday
@@ -89,11 +91,13 @@ describe('useCatalogStats', () => {
   });
 
   it('handles empty tasks', () => {
-    const { result } = renderHook(() => useCatalogStats([], {
-      currentStreak: 0,
-      bestStreak: 0,
-    }));
-    
+    const { result } = renderHook(() =>
+      useCatalogStats([], {
+        currentStreak: 0,
+        bestStreak: 0,
+      }),
+    );
+
     expect(result.current.hasActivityToday).toBe(false);
     expect(result.current.totalDone[EffortLevel.LOW]).toBe(0);
     expect(result.current.totalLeft[EffortLevel.LOW]).toBe(0);
@@ -112,10 +116,12 @@ describe('useCatalogStats', () => {
       },
     ];
 
-    const { result } = renderHook(() => useCatalogStats(olderTasks, {
-      currentStreak: 0,
-      bestStreak: 0,
-    }));
+    const { result } = renderHook(() =>
+      useCatalogStats(olderTasks, {
+        currentStreak: 0,
+        bestStreak: 0,
+      }),
+    );
     expect(result.current.currentStreak).toBe(0);
     expect(result.current.bestStreak).toBe(0);
   });

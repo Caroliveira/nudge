@@ -11,77 +11,77 @@ simples, fluida e mobile-first.
 O projeto é construído como **Progressive Web App (PWA)** e pode ser
 distribuído como aplicativo Android via **Trusted Web Activity (TWA)**.
 
-------------------------------------------------------------------------
+---
 
 ## ✨ Funcionalidades
 
--   Organização de micro-hábitos recorrentes
--   Sistema leve de acompanhamento diário
--   Experiência mobile-first
--   Instalação como aplicativo no Android
--   Suporte offline (PWA)
--   Internacionalização (i18n)
+- Organização de micro-hábitos recorrentes
+- Sistema leve de acompanhamento diário
+- Experiência mobile-first
+- Instalação como aplicativo no Android
+- Suporte offline (PWA)
+- Internacionalização (i18n)
 
-------------------------------------------------------------------------
+---
 
 ## 🛠 Stack Técnica
 
--   **React 19 + Vite**
--   **TypeScript (strict mode)**
--   **Zustand** (state management)
--   **React Router v7**
--   **Tailwind CSS**
--   **Framer Motion**
--   **i18next** (internacionalização)
--   **Vitest + Testing Library**
--   **vite-plugin-pwa**
--   **Bubblewrap (TWA Android)**
+- **React 19 + Vite**
+- **TypeScript (strict mode)**
+- **Zustand** (state management)
+- **React Router v7**
+- **Tailwind CSS**
+- **Framer Motion**
+- **i18next** (internacionalização)
+- **Vitest + Testing Library**
+- **vite-plugin-pwa**
+- **Bubblewrap (TWA Android)**
 
-------------------------------------------------------------------------
+---
 
 ## 🚀 Como Rodar Localmente
 
 ### Pré-requisitos
 
--   Node.js 18+
+- Node.js 18+
 
 ### Instalar dependências
 
-``` bash
+```bash
 npm install
 ```
 
 ### Rodar em modo desenvolvimento
 
-``` bash
+```bash
 npm run dev
 ```
 
 ### Rodar testes
 
-``` bash
+```bash
 npm run test
 ```
 
 Para cobertura de testes:
 
-``` bash
+```bash
 npm run test:coverage
 ```
 
 ### Gerar build de produção
 
-``` bash
+```bash
 npm run build
 ```
 
 Visualizar build local:
 
-``` bash
+```bash
 npm run preview
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 📱 Distribuição Android (TWA)
 
@@ -105,25 +105,25 @@ partir do template com as credenciais apropriadas.
 
 Instale o CLI:
 
-``` bash
+```bash
 npm install -g @google/bubblewrap
 ```
 
 Depois, utilize o Bubblewrap para inicializar ou atualizar o projeto
 Android com base no `twa-manifest.json`.
 
-------------------------------------------------------------------------
+---
 
 ## 🌐 PWA
 
 O Nudge é um Progressive Web App com:
 
--   Cache de assets
--   Atualização automática
--   Suporte offline
--   Instalação nativa em dispositivos compatíveis
+- Cache de assets
+- Atualização automática
+- Suporte offline
+- Instalação nativa em dispositivos compatíveis
 
-------------------------------------------------------------------------
+---
 
 ## 📄 Licença
 

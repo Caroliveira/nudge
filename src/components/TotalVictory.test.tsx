@@ -3,19 +3,19 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TotalVictory from './TotalVictory';
 import { useTaskAvailability } from '../hooks/useTaskAvailability';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 vi.mock('../hooks/useTaskAvailability');
-vi.mock('react-router-dom', () => ({
-  useNavigate: vi.fn(),
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
 }));
 
 describe('TotalVictory', () => {
-  const mockNavigate = vi.fn();
+  const mockPush = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useNavigate as any).mockReturnValue(mockNavigate);
+    (useRouter as any).mockReturnValue({ push: mockPush });
   });
 
   it('renders victory message', () => {
@@ -24,7 +24,7 @@ describe('TotalVictory', () => {
     render(<TotalVictory />);
 
     expect(screen.getByText("You've completed your quest!")).toBeInTheDocument();
-    expect(screen.getByText("Enjoy your rest.")).toBeInTheDocument();
+    expect(screen.getByText('Enjoy your rest.')).toBeInTheDocument();
   });
 
   it('shows next refresh info when available', () => {
@@ -58,6 +58,6 @@ describe('TotalVictory', () => {
     render(<TotalVictory />);
 
     await user.click(screen.getByText('Add New Tasks'));
-    expect(mockNavigate).toHaveBeenCalledWith('/catalog');
+    expect(mockPush).toHaveBeenCalledWith('/catalog');
   });
 });

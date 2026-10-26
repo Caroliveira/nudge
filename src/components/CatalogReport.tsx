@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCatalogStats } from '../hooks/useCatalogStats';
@@ -14,9 +16,7 @@ const CatalogReport: React.FC = () => {
     return (
       <div className="text-center py-12 px-6 animate-fade-in bg-surface/10 rounded-3xl border border-surface/20 border-dashed">
         <p className="text-soft italic text-lg mb-2">{t('report.noData')}</p>
-        <p className="text-soft text-sm opacity-60">
-          {t('report.addTasks')}
-        </p>
+        <p className="text-soft text-sm opacity-60">{t('report.addTasks')}</p>
       </div>
     );
   }

@@ -1,5 +1,7 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+'use client';
+
+import React, { useSyncExternalStore } from 'react';
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../store/useStore';
 import { useTaskAvailability } from '../hooks/useTaskAvailability';
@@ -8,10 +10,25 @@ import TotalVictory from '../components/TotalVictory';
 import { APP_ROUTES } from '../constants';
 import AddFirstTask from '@/components/AddFirstTask';
 
+const emptySubscribe = () => () => {};
+
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const { tasks } = useStore();
   const { totalIncomplete } = useTaskAvailability();
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
+  if (!mounted) {
+    return (
+      <section className="w-full flex flex-col items-center">
+        <EffortSelector />
+      </section>
+    );
+  }
 
   if (tasks.length === 0) return <AddFirstTask />;
 
@@ -22,7 +39,7 @@ const HomePage: React.FC = () => {
       <EffortSelector />
       <nav aria-label="Catalog Navigation">
         <Link
-          to={APP_ROUTES.CATALOG}
+          href={APP_ROUTES.CATALOG}
           className="mt-12 text-soft hover:text-accent transition-colors flex items-center gap-2 group"
         >
           <span className="w-8 h-px bg-soft group-hover:bg-accent transition-colors" />

@@ -1,8 +1,12 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "com.lina_oliveira.nudge.twa",
-        "sha256_cert_fingerprints": ["6E:CC:F7:A7:CC:32:DC:A1:44:12:84:B3:88:6D:A1:88:7F:4D:5C:BC:CC:92:D8:24:50:21:F1:FF:E2:61:B3:8B"]
-      }
-    }]
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.lina_oliveira.nudge.twa",
+      "sha256_cert_fingerprints": [
+        "6E:CC:F7:A7:CC:32:DC:A1:44:12:84:B3:88:6D:A1:88:7F:4D:5C:BC:CC:92:D8:24:50:21:F1:FF:E2:61:B3:8B"
+      ]
+    }
+  }
+]

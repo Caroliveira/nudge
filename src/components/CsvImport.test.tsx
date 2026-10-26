@@ -9,12 +9,12 @@ import { IMPORT_CONFIG } from '../constants';
 
 vi.mock('papaparse', () => ({
   default: {
-    parse: vi.fn()
-  }
+    parse: vi.fn(),
+  },
 }));
 
 vi.mock('../store/useStore', () => ({
-  useStore: vi.fn()
+  useStore: vi.fn(),
 }));
 
 describe('CsvImport', () => {
@@ -25,9 +25,8 @@ describe('CsvImport', () => {
     vi.clearAllMocks();
     (useStore as any).mockReturnValue({
       tasks: mockTasks,
-      addTask: mockAddTask
+      addTask: mockAddTask,
     });
-
   });
 
   afterEach(() => {
@@ -52,24 +51,24 @@ describe('CsvImport', () => {
       expect(config.header).toBe(true);
 
       config.complete({
-        data: [
-          { title: 'Task 1', effort: 'Low', interval: '1', unit: 'days' }
-        ],
+        data: [{ title: 'Task 1', effort: 'Low', interval: '1', unit: 'days' }],
         meta: {
-          fields: ['title', 'effort', 'interval', 'unit']
-        }
+          fields: ['title', 'effort', 'interval', 'unit'],
+        },
       });
     });
 
     await user.upload(input, file);
 
     await waitFor(() => {
-      expect(mockAddTask).toHaveBeenCalledWith(expect.objectContaining({
-        title: 'Task 1',
-        level: EffortLevel.LOW,
-        recurrenceInterval: 1,
-        recurrenceUnit: 'days'
-      }));
+      expect(mockAddTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Task 1',
+          level: EffortLevel.LOW,
+          recurrenceInterval: 1,
+          recurrenceUnit: 'days',
+        }),
+      );
       expect(screen.getByText(/Successfully imported 1 tasks/)).toBeInTheDocument();
     });
   });
@@ -85,8 +84,8 @@ describe('CsvImport', () => {
       config.complete({
         data: [],
         meta: {
-          fields: ['wrong', 'headers']
-        }
+          fields: ['wrong', 'headers'],
+        },
       });
     });
 
@@ -111,7 +110,7 @@ describe('CsvImport', () => {
         config.complete({
           data: [],
           errors: [{ message: 'Malformed CSV' }],
-          meta: {}
+          meta: {},
         });
       }
     });
@@ -134,7 +133,7 @@ describe('CsvImport', () => {
     (Papa.parse as any).mockImplementation((file: any, config: any) => {
       config.complete({
         data: [],
-        meta: { fields: ['title', 'effort', 'interval', 'unit'] }
+        meta: { fields: ['title', 'effort', 'interval', 'unit'] },
       });
     });
 

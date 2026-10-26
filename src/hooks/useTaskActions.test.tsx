@@ -6,8 +6,10 @@ import { EffortLevel, Task } from '../types';
 import { APP_ROUTES } from '../constants';
 
 const mockNavigate = vi.fn();
-vi.mock('react-router-dom', () => ({
-  useNavigate: () => mockNavigate,
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockNavigate,
+  }),
 }));
 
 describe('useTaskActions', () => {
@@ -81,7 +83,7 @@ describe('useTaskActions', () => {
   it('backToSelection clears state and navigates home', () => {
     useStore.setState({
       selectedLevel: EffortLevel.LOW,
-      currentTask: mockTasks[0]
+      currentTask: mockTasks[0],
     });
 
     const { result } = renderHook(() => useTaskActions());
@@ -105,7 +107,7 @@ describe('useTaskActions', () => {
     });
 
     const state = useStore.getState();
-    const task = state.tasks.find(t => t.id === '1');
+    const task = state.tasks.find((t) => t.id === '1');
     expect(task?.isCompleted).toBe(true);
   });
 
@@ -125,7 +127,7 @@ describe('useTaskActions', () => {
     });
 
     const state = useStore.getState();
-    const task = state.tasks.find(t => t.id === '1');
+    const task = state.tasks.find((t) => t.id === '1');
     expect(task?.isCompleted).toBe(true);
 
     expect(response).toEqual({ levelCleared: false });
@@ -137,11 +139,7 @@ describe('useTaskActions', () => {
     vi.setSystemTime(today);
 
     useStore.setState({
-      tasks: [
-        mockTasks[0],
-        mockTasks[1],
-        mockTasks[2],
-      ],
+      tasks: [mockTasks[0], mockTasks[1], mockTasks[2]],
       selectedLevel: EffortLevel.LOW,
       currentTask: mockTasks[0],
       currentStreak: 1,
@@ -208,15 +206,12 @@ describe('useTaskActions', () => {
   });
 
   it('markTaskDone returns levelCleared true when last task is finished', () => {
-    const tasks = [
-      { ...mockTasks[0] },
-      { ...mockTasks[1], isCompleted: true },
-    ];
+    const tasks = [{ ...mockTasks[0] }, { ...mockTasks[1], isCompleted: true }];
 
     useStore.setState({
       tasks: tasks,
       selectedLevel: EffortLevel.LOW,
-      currentTask: tasks[0]
+      currentTask: tasks[0],
     });
 
     const { result } = renderHook(() => useTaskActions());
@@ -233,7 +228,7 @@ describe('useTaskActions', () => {
     useStore.setState({
       tasks: mockTasks,
       selectedLevel: EffortLevel.LOW,
-      currentTask: null
+      currentTask: null,
     });
 
     const { result } = renderHook(() => useTaskActions());

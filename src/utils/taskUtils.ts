@@ -1,8 +1,6 @@
 import { addDays, addWeeks, addMonths, addYears, startOfDay } from 'date-fns';
 import { Task, EffortLevel, RecurringUnit } from '../types';
 
-
-
 const recurrenceMap: Record<RecurringUnit, (last: Date, interval: number) => Date> = {
   days: (last, interval) => addDays(last, interval),
   weeks: (last, interval) => addWeeks(last, interval),
@@ -14,7 +12,7 @@ export function getNextAvailableDate(task: Task): Date | null {
   if (!task.lastCompletedAt || !task.recurrenceUnit || task.recurrenceUnit === 'none') return null;
   const last = new Date(task.lastCompletedAt);
   const interval = task.recurrenceInterval ?? 1;
-  
+
   const calculator = recurrenceMap[task.recurrenceUnit as RecurringUnit];
   const nextDate = calculator?.(last, interval) ?? last;
   return startOfDay(nextDate);
@@ -22,7 +20,7 @@ export function getNextAvailableDate(task: Task): Date | null {
 
 export function calculateTaskCompletion(task: Task, isCompleted: boolean): Task {
   const lastCompletedAt = isCompleted ? Date.now() : undefined;
-  
+
   const tempTask = { ...task, isCompleted, lastCompletedAt };
   const nextDate = isCompleted ? getNextAvailableDate(tempTask) : null;
 
@@ -30,7 +28,7 @@ export function calculateTaskCompletion(task: Task, isCompleted: boolean): Task 
     ...task,
     isCompleted,
     lastCompletedAt,
-    nextAvailableAt: nextDate ? nextDate.getTime() : undefined
+    nextAvailableAt: nextDate ? nextDate.getTime() : undefined,
   };
 }
 
@@ -49,6 +47,10 @@ export const isOneTimeTask = (task: Task): boolean => {
   return !task.recurrenceUnit || task.recurrenceUnit === 'none';
 };
 
-export const getTasksForLevel = (tasks: Task[], level: EffortLevel, now: Date = new Date()): Task[] => {
-  return tasks.filter(t => t.level === level && isTaskAvailable(t, now));
+export const getTasksForLevel = (
+  tasks: Task[],
+  level: EffortLevel,
+  now: Date = new Date(),
+): Task[] => {
+  return tasks.filter((t) => t.level === level && isTaskAvailable(t, now));
 };

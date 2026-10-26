@@ -1,10 +1,12 @@
+'use client';
+
 import { APP_ROUTES } from '@/constants';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 const AddFirstTask: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { t } = useTranslation();
 
   return (
@@ -13,13 +15,11 @@ const AddFirstTask: React.FC = () => {
         <h1 className="text-4xl md:text-5xl text-text font-light serif">
           {t('home.firstTask.title')}
         </h1>
-        <p className="text-lg text-soft italic max-w-md mx-auto">
-          {t('home.firstTask.subtitle')}
-        </p>
+        <p className="text-lg text-soft italic max-w-md mx-auto">{t('home.firstTask.subtitle')}</p>
       </div>
       <button
         type="button"
-        onClick={() => navigate(APP_ROUTES.CATALOG)}
+        onClick={() => router.push(APP_ROUTES.CATALOG)}
         className="group relative py-4 px-8 rounded-full bg-accent text-white transition-all duration-300 shadow-lg hover:shadow-xl active:scale-95 flex items-center gap-3 font-medium text-lg cursor-pointer"
       >
         <span className="text-2xl">+</span>

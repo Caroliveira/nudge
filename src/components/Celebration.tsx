@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { EffortLevel } from '../types';
@@ -5,9 +7,9 @@ import { useStore } from '../store/useStore';
 import { useTaskActions } from '../hooks/useTaskActions';
 
 const LEVEL_COLORS: Record<EffortLevel, string> = {
-  [EffortLevel.LOW]: "text-accent",
-  [EffortLevel.MEDIUM]: "text-success",
-  [EffortLevel.HIGH]: "text-info"
+  [EffortLevel.LOW]: 'text-accent',
+  [EffortLevel.MEDIUM]: 'text-success',
+  [EffortLevel.HIGH]: 'text-info',
 };
 
 const Celebration: React.FC = () => {
@@ -24,11 +26,18 @@ const Celebration: React.FC = () => {
     <div className="flex flex-col items-center justify-center max-w-xl mx-auto px-6 text-center space-y-8 fade-in">
       <div className="space-y-4">
         <div className="inline-block p-4 bg-surface rounded-full mb-4 animate-bounce">
-          <svg className={`w-12 h-12 ${color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className={`w-12 h-12 ${color}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className={`text-4xl md:text-5xl serif italic ${color}`}>{t(`celebration.${levelKey}.title`)}</h2>
+        <h2 className={`text-4xl md:text-5xl serif italic ${color}`}>
+          {t(`celebration.${levelKey}.title`)}
+        </h2>
         <p className="text-xl md:text-2xl text-text leading-relaxed">
           {t(`celebration.${levelKey}.message`)}
         </p>

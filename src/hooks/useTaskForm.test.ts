@@ -17,7 +17,7 @@ describe('useTaskForm', () => {
 
   it('initializes with default values', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
-    
+
     expect(result.current.title).toBe('');
     expect(result.current.level).toBe(EffortLevel.LOW);
     expect(result.current.recurrenceUnit).toBe('none');
@@ -32,7 +32,7 @@ describe('useTaskForm', () => {
       recurrenceInterval: 5,
     };
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit, initialValues }));
-    
+
     expect(result.current.title).toBe('Test Task');
     expect(result.current.level).toBe(EffortLevel.HIGH);
     expect(result.current.recurrenceUnit).toBe('days');
@@ -41,7 +41,7 @@ describe('useTaskForm', () => {
 
   it('validates required title', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
-    
+
     act(() => {
       // Simulate form submission
       const e = { preventDefault: vi.fn() } as unknown as React.FormEvent;
@@ -54,7 +54,7 @@ describe('useTaskForm', () => {
 
   it('validates recurrence interval when unit is not none', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
-    
+
     act(() => {
       result.current.updateTitle('Valid Title');
       result.current.updateRecurrenceUnit('days');
@@ -72,7 +72,7 @@ describe('useTaskForm', () => {
 
   it('submits successfully and resets form', async () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
-    
+
     act(() => {
       result.current.updateTitle('New Task');
       result.current.updateLevel(EffortLevel.MEDIUM);
@@ -85,7 +85,7 @@ describe('useTaskForm', () => {
 
     expect(result.current.errors).toEqual({});
     expect(result.current.isSuccess).toBe(true);
-    
+
     // Check timeout behavior
     await act(async () => {
       vi.runAllTimers();
@@ -105,7 +105,7 @@ describe('useTaskForm', () => {
 
   it('clears errors on field update', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
-    
+
     // Trigger error
     act(() => {
       const e = { preventDefault: vi.fn() } as unknown as React.FormEvent;

@@ -10,7 +10,13 @@ vi.mock('framer-motion', () => ({
       </div>
     ),
     button: ({ children, className, style, onClick, ...props }: any) => (
-      <button className={className} style={style} onClick={onClick} {...props} data-testid="motion-button">
+      <button
+        className={className}
+        style={style}
+        onClick={onClick}
+        {...props}
+        data-testid="motion-button"
+      >
         {children}
       </button>
     ),
@@ -48,7 +54,7 @@ describe('SwipeAction', () => {
         alignment="end"
         x={mockX}
         onClick={mockOnClick}
-      />
+      />,
     );
 
     expect(screen.getByText('Delete')).toBeInTheDocument();
@@ -72,7 +78,7 @@ describe('SwipeAction', () => {
         alignment="end"
         x={mockX}
         onClick={mockOnClick}
-      />
+      />,
     );
 
     act(() => {
@@ -100,7 +106,7 @@ describe('SwipeAction', () => {
         alignment="end"
         x={mockX}
         onClick={mockOnClick}
-      />
+      />,
     );
 
     act(() => {
@@ -129,7 +135,7 @@ describe('SwipeAction', () => {
         x={mockX}
         onClick={mockOnClick}
         isConfirmed={true}
-      />
+      />,
     );
 
     expect(screen.getByText('Deleted!')).toBeInTheDocument();
@@ -148,7 +154,7 @@ describe('SwipeAction', () => {
         alignment="end"
         x={mockX}
         onClick={mockOnClick}
-      />
+      />,
     );
 
     expect(screen.getByTestId('motion-div')).toHaveClass('justify-end');
@@ -163,7 +169,7 @@ describe('SwipeAction', () => {
         alignment="start"
         x={mockX}
         onClick={mockOnClick}
-      />
+      />,
     );
 
     expect(screen.getByTestId('motion-div')).toHaveClass('justify-start');

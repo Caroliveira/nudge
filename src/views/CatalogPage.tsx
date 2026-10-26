@@ -1,7 +1,9 @@
+'use client';
+
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTaskActions } from '../hooks/useTaskActions';
 import { CatalogView } from '../hooks/useCatalogFilter';
 import CatalogTabs from '../components/CatalogTabs';
@@ -10,18 +12,22 @@ import CatalogTasks from '../components/CatalogTasks';
 
 const CatalogPage: React.FC = () => {
   const { t } = useTranslation();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { backToSelection } = useTaskActions();
-  const view: CatalogView = searchParams.get('view') === 'report' ? 'report' : 'tasks';
+  const view: CatalogView = searchParams?.get('view') === 'report' ? 'report' : 'tasks';
 
   const handleTabChange = (newView: CatalogView) => {
-    const nextParams = new URLSearchParams(searchParams);
+    const nextParams = new URLSearchParams(searchParams ? searchParams.toString() : '');
     if (newView === 'report') {
       nextParams.set('view', 'report');
     } else {
       nextParams.delete('view');
     }
-    setSearchParams(nextParams, { replace: true });
+    const query = nextParams.toString();
+    const targetPath = pathname ?? '/catalog';
+    router.replace(query ? `${targetPath}?${query}` : targetPath);
   };
 
   return (

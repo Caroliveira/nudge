@@ -30,7 +30,7 @@ describe('useTaskAvailability', () => {
       isCompleted: true,
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
-    }
+    },
   ];
 
   beforeEach(() => {
@@ -57,20 +57,22 @@ describe('useTaskAvailability', () => {
     const futureDate = addDays(new Date(), 2).getTime();
     const recurringTask: Task = {
       ...mockTasks[2],
-      nextAvailableAt: futureDate
+      nextAvailableAt: futureDate,
     };
-    
-    (useStore as any).mockImplementation((selector: any) => selector({ tasks: [...mockTasks.slice(0, 2), recurringTask] }));
-    
+
+    (useStore as any).mockImplementation((selector: any) =>
+      selector({ tasks: [...mockTasks.slice(0, 2), recurringTask] }),
+    );
+
     const { result } = renderHook(() => useTaskAvailability());
 
     expect(result.current.nextRefreshDays).toBe(2);
   });
 
   it('returns null for nextRefreshDays if no recurring tasks', () => {
-    const noRecurringTasks = mockTasks.map(t => ({ ...t, recurrenceUnit: 'none' as const }));
+    const noRecurringTasks = mockTasks.map((t) => ({ ...t, recurrenceUnit: 'none' as const }));
     (useStore as any).mockImplementation((selector: any) => selector({ tasks: noRecurringTasks }));
-    
+
     const { result } = renderHook(() => useTaskAvailability());
 
     expect(result.current.nextRefreshDays).toBeNull();

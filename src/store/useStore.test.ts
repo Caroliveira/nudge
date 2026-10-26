@@ -47,7 +47,9 @@ describe('useStore', () => {
 
     expect(useStore.getState().currentStreak).toBe(2);
     expect(useStore.getState().bestStreak).toBe(2);
-    expect(useStore.getState().streakLastUpdatedAt).toBe(new Date('2024-01-02T12:00:00Z').getTime());
+    expect(useStore.getState().streakLastUpdatedAt).toBe(
+      new Date('2024-01-02T12:00:00Z').getTime(),
+    );
   });
 
   it('does not count multiple completions on the same day as a new streak day', () => {
@@ -82,7 +84,7 @@ describe('useStore', () => {
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
     useStore.getState().addTask(taskData);
 
@@ -99,7 +101,7 @@ describe('useStore', () => {
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
     useStore.getState().addTask(taskData);
 
@@ -116,7 +118,7 @@ describe('useStore', () => {
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     };
     useStore.getState().addTask(taskData);
     const task = useStore.getState().tasks[0];
@@ -138,7 +140,7 @@ describe('useStore', () => {
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
       lastCompletedAt: pastDate,
-      nextAvailableAt: pastDate
+      nextAvailableAt: pastDate,
     };
 
     useStore.setState({ tasks: [task] });
@@ -160,7 +162,7 @@ describe('useStore', () => {
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
       lastCompletedAt: Date.now(),
-      nextAvailableAt: futureDate
+      nextAvailableAt: futureDate,
     };
 
     useStore.setState({ tasks: [task] });

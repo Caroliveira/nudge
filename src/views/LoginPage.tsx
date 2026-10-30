@@ -76,8 +76,8 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-dvh flex items-center justify-center p-6 bg-warm text-text">
-      <div className="w-full max-w-md mx-auto">
+    <main className="min-h-dvh flex items-center justify-center p-4 sm:p-8 bg-warm text-text">
+      <div className="w-full max-w-xl mx-auto">
         {/* Header / Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-accent/15 text-accent mb-4 border border-accent/20">
@@ -86,7 +86,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-serif text-text tracking-tight mb-2">
             {t('auth.title', 'Nudge')}
           </h1>
-          <p className="text-soft text-sm max-w-xs mx-auto">
+          <p className="text-soft text-sm max-w-md mx-auto">
             {mode === 'register'
               ? t(
                   'auth.registerSubtitle',
@@ -100,7 +100,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-surface/30 backdrop-blur-sm p-8 rounded-3xl border border-surface shadow-sm">
+        <div className="bg-surface/30 backdrop-blur-sm p-6 sm:p-10 rounded-3xl border border-surface shadow-sm">
           {status === 'success' ? (
             <div className="text-center py-4 space-y-4 fade-in">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mx-auto">
@@ -141,7 +141,7 @@ export default function LoginPage() {
           ) : (
             <>
               {/* Tab Switcher */}
-              <div className="flex bg-surface/50 p-1 rounded-2xl border border-surface mb-6">
+              <div className="flex bg-surface/50 p-1.5 rounded-2xl border border-surface mb-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -149,7 +149,7 @@ export default function LoginPage() {
                     setErrorMessage(null);
                     setErrorType(null);
                   }}
-                  className={`flex-1 py-2 text-xs font-medium rounded-xl transition-all ${
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all ${
                     mode === 'login'
                       ? 'bg-accent text-warm shadow-sm'
                       : 'text-soft hover:text-text'
@@ -164,7 +164,7 @@ export default function LoginPage() {
                     setErrorMessage(null);
                     setErrorType(null);
                   }}
-                  className={`flex-1 py-2 text-xs font-medium rounded-xl transition-all ${
+                  className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all ${
                     mode === 'register'
                       ? 'bg-accent text-warm shadow-sm'
                       : 'text-soft hover:text-text'

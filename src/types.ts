@@ -40,6 +40,7 @@ export interface StoreState {
   setCurrentTask: (task: Task | null) => void;
   setSelectedLevel: (level: EffortLevel | null) => void;
   setBestStreak: (bestStreak: number) => void;
+  setUserName: (userName: string) => void;
   recordTaskCompletion: (completedAt?: number) => void;
 
   addTask: (task: Task) => void;

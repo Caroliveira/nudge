@@ -16,6 +16,7 @@ import {
   getOrCreateUser,
   findUserByEmail,
   deleteUserAccount,
+  updateUserName,
 } from './auth';
 
 describe('auth.ts - DynamoDB configured branch', () => {
@@ -174,5 +175,44 @@ describe('auth.ts - DynamoDB configured branch', () => {
 
     const result = await deleteUserAccount('error-delete@example.com');
     expect(result).toBe(true);
+  });
+
+  it('updates user display name via DynamoDB PutCommand', async () => {
+    // 1. findUserByEmail call
+    mockSend.mockResolvedValueOnce({
+      Item: {
+        email: 'user-to-rename@example.com',
+        name: 'Old Name',
+        householdId: 'hh_rename',
+        createdAt: 1700000000,
+      },
+    });
+    // 2. putCommand call
+    mockSend.mockResolvedValueOnce({});
+
+    const result = await updateUserName('user-to-rename@example.com', 'New Name');
+    expect(result).not.toBeNull();
+    expect(result?.name).toBe('New Name');
+    expect(mockSend).toHaveBeenCalledTimes(2);
+
+    const putInput = mockSend.mock.calls[1][0].input;
+    expect(putInput.Item.name).toBe('New Name');
+    expect(putInput.Item.PK).toBe('USER#user-to-rename@example.com');
+  });
+
+  it('handles DynamoDB error on updateUserName with memory fallback', async () => {
+    mockSend.mockResolvedValueOnce({
+      Item: {
+        email: 'err-rename@example.com',
+        name: 'Old Name',
+        householdId: 'hh_err',
+        createdAt: 1700000000,
+      },
+    });
+    mockSend.mockRejectedValueOnce(new Error('DynamoDB put error'));
+
+    const result = await updateUserName('err-rename@example.com', 'Fallback Name');
+    expect(result).not.toBeNull();
+    expect(result?.name).toBe('Fallback Name');
   });
 });

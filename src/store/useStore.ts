@@ -37,6 +37,7 @@ export const useStore = create<StoreState>()((set) => ({
   setCurrentTask: (currentTask) => set({ currentTask }),
   setSelectedLevel: (selectedLevel) => set({ selectedLevel }),
   setBestStreak: (bestStreak) => set({ bestStreak }),
+  setUserName: (userName) => set({ userName }),
 
   resetStore: () =>
     set({

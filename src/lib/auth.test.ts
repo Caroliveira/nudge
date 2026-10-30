@@ -5,6 +5,7 @@ import {
   getOrCreateUser,
   findUserByEmail,
   deleteUserAccount,
+  updateUserName,
 } from './auth';
 
 describe('auth.ts (In-memory fallback & core logic)', () => {
@@ -69,5 +70,26 @@ describe('auth.ts (In-memory fallback & core logic)', () => {
 
     const foundAfter = await findUserByEmail(email);
     expect(foundAfter).toBeNull();
+  });
+
+  it('updates user display name with validation', async () => {
+    const email = `name-update-${crypto.randomUUID()}@nudge.app`;
+    await getOrCreateUser(email, 'Old Name');
+
+    // Update name successfully
+    const updated = await updateUserName(email, 'Brand New Name');
+    expect(updated).not.toBeNull();
+    expect(updated?.name).toBe('Brand New Name');
+
+    const found = await findUserByEmail(email);
+    expect(found?.name).toBe('Brand New Name');
+
+    // Rejects too short name
+    const invalidShort = await updateUserName(email, 'A');
+    expect(invalidShort).toBeNull();
+
+    // Returns null for non-existent user
+    const nonExistent = await updateUserName('non-existent@nudge.app', 'Some Name');
+    expect(nonExistent).toBeNull();
   });
 });

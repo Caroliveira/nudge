@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { getHouseholdId, getSession, clearSessionCookie } from '@/lib/session';
+import { getHouseholdId, getSession, setSessionCookie, clearSessionCookie } from '@/lib/session';
 import {
   createTask,
   updateTask,
@@ -15,7 +15,12 @@ import {
   saveHouseholdProfile,
   HouseholdProfile,
 } from '@/lib/db';
-import { createMagicLinkToken, findUserByEmail, deleteUserAccount } from '@/lib/auth';
+import {
+  createMagicLinkToken,
+  findUserByEmail,
+  deleteUserAccount,
+  updateUserName,
+} from '@/lib/auth';
 import { sendMagicLinkEmail } from '@/lib/email';
 import { Task } from '@/types';
 
@@ -182,6 +187,42 @@ export async function deleteAccountAction(): Promise<{ success: boolean; error?:
   } catch (error: unknown) {
     console.error('[deleteAccountAction Error]', error);
     const message = error instanceof Error ? error.message : 'failed_to_delete_account';
+    return { success: false, error: message };
+  }
+}
+
+export async function updateUserNameAction(
+  newName: string,
+): Promise<{ success: boolean; name?: string; error?: string }> {
+  try {
+    const session = await getSession();
+    if (!session || !session.email) {
+      return { success: false, error: 'unauthorized' };
+    }
+
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed.length < 2) {
+      return { success: false, error: 'invalid_name' };
+    }
+
+    const updatedUser = await updateUserName(session.email, trimmed);
+    if (!updatedUser) {
+      return { success: false, error: 'user_not_found' };
+    }
+
+    await setSessionCookie({
+      email: updatedUser.email,
+      name: updatedUser.name,
+      householdId: updatedUser.householdId,
+    });
+
+    safeRevalidate('/');
+    safeRevalidate('/settings');
+
+    return { success: true, name: updatedUser.name };
+  } catch (error: unknown) {
+    console.error('[updateUserNameAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_update_name';
     return { success: false, error: message };
   }
 }

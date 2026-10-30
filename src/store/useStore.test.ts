@@ -195,4 +195,9 @@ describe('useStore', () => {
     expect(state.streakLastUpdatedAt).toBeUndefined();
     expect(state.userEmail).toBeUndefined();
   });
+
+  it('updates userName via setUserName', () => {
+    useStore.getState().setUserName('Novo Nome');
+    expect(useStore.getState().userName).toBe('Novo Nome');
+  });
 });

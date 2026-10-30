@@ -9,6 +9,7 @@ import {
   logoutAction,
   deleteAccountAction,
   sendMagicLinkAction,
+  updateUserNameAction,
 } from './actions';
 import { EffortLevel } from '@/types';
 import * as sessionModule from '@/lib/session';
@@ -163,5 +164,41 @@ describe('actions.ts', () => {
     const result = await sendMagicLinkAction('unregistered@nudge.app', { mode: 'login' });
     expect(result.success).toBe(false);
     expect(result.error).toBe('account_not_found');
+  });
+
+  it('updates user name via updateUserNameAction', async () => {
+    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
+      email: 'active-user@nudge.app',
+      name: 'Initial Name',
+      householdId: 'hh_active',
+    });
+    vi.spyOn(sessionModule, 'setSessionCookie').mockResolvedValueOnce();
+
+    const { getOrCreateUser } = await import('@/lib/auth');
+    await getOrCreateUser('active-user@nudge.app', 'Initial Name');
+
+    const result = await updateUserNameAction('Updated Name');
+    expect(result.success).toBe(true);
+    expect(result.name).toBe('Updated Name');
+  });
+
+  it('validates name length in updateUserNameAction', async () => {
+    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
+      email: 'active-user@nudge.app',
+      name: 'Initial Name',
+      householdId: 'hh_active',
+    });
+
+    const result = await updateUserNameAction('A');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('invalid_name');
+  });
+
+  it('returns unauthorized when session is missing in updateUserNameAction', async () => {
+    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce(null);
+
+    const result = await updateUserNameAction('Some Name');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('unauthorized');
   });
 });

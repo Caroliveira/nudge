@@ -245,6 +245,50 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
 }
 
 /**
+ * Updates a user's display name.
+ */
+export async function updateUserName(email: string, name: string): Promise<UserAccount | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const trimmedName = name.trim();
+  if (!trimmedName || trimmedName.length < 2) {
+    return null;
+  }
+
+  const existing = await findUserByEmail(normalizedEmail);
+  if (!existing) {
+    return null;
+  }
+
+  existing.name = trimmedName;
+
+  if (!isDynamoConfigured) {
+    memoryUsers.set(normalizedEmail, existing);
+    return existing;
+  }
+
+  try {
+    const putCommand = new PutCommand({
+      TableName: TABLE_NAME,
+      Item: {
+        PK: `USER#${normalizedEmail}`,
+        SK: 'ACCOUNT',
+        type: 'USER',
+        email: normalizedEmail,
+        name: trimmedName,
+        householdId: existing.householdId,
+        createdAt: existing.createdAt,
+      },
+    });
+    await docClient.send(putCommand);
+    return existing;
+  } catch (error) {
+    console.warn('[DynamoDB] Error updating user name, fallback to memory:', error);
+    memoryUsers.set(normalizedEmail, existing);
+    return existing;
+  }
+}
+
+/**
  * Deletes a user account from DynamoDB and the in-memory fallback.
  */
 export async function deleteUserAccount(email: string): Promise<boolean> {

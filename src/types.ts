@@ -26,8 +26,14 @@ export interface StoreState {
   currentStreak: number;
   bestStreak: number;
   streakLastUpdatedAt?: number;
+  userEmail?: string;
 
   // Actions
+  initializeFromSSR: (
+    tasks: Task[],
+    profile?: { currentStreak: number; bestStreak: number; streakLastUpdatedAt?: number },
+    userEmail?: string
+  ) => void;
   setTasks: (tasks: Task[]) => void;
   setCurrentTask: (task: Task | null) => void;
   setSelectedLevel: (level: EffortLevel | null) => void;

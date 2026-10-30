@@ -230,6 +230,7 @@
     "sentMessage": "Enviamos un enlace mágico a {{email}}. Revisa tu bandeja de entrada para entrar.",
     "sentRegisterTitle": "¡Casi listo!",
     "sentRegisterMessage": "Enviamos un enlace de confirmación a {{email}}. Haz clic para activar tu cuenta.",
+    "checkSpam": "¿No lo encuentras? Revisa también tu carpeta de spam o correo no deseado.",
     "tryAnother": "Usar otro correo",
     "invalidToken": "Este enlace de acceso ha caducado o ya ha sido utilizado. Solicita uno nuevo.",
     "invalidEmail": "Por favor ingresa un correo electrónico válido.",

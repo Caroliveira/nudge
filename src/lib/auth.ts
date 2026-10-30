@@ -23,8 +23,16 @@ export interface VerifiedTokenPayload {
 }
 
 // In-memory fallbacks for development without AWS credentials or tests
-const memoryTokens = new Map<string, AuthToken>();
-const memoryUsers = new Map<string, UserAccount>();
+const globalAuth = globalThis as unknown as {
+  __nudge_memory_tokens__?: Map<string, AuthToken>;
+  __nudge_memory_users__?: Map<string, UserAccount>;
+};
+
+const memoryTokens = globalAuth.__nudge_memory_tokens__ ?? new Map<string, AuthToken>();
+const memoryUsers = globalAuth.__nudge_memory_users__ ?? new Map<string, UserAccount>();
+
+globalAuth.__nudge_memory_tokens__ = memoryTokens;
+globalAuth.__nudge_memory_users__ = memoryUsers;
 
 /**
  * Creates and stores a 15-minute magic link token for the given email (and optional name for registration).

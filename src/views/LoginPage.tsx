@@ -143,6 +143,12 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
                     { email },
                   )}
             </p>
+            <p className="text-xs text-soft/80 leading-relaxed bg-surface/50 border border-surface px-3 py-2 rounded-xl">
+              {t(
+                'auth.checkSpam',
+                'Não encontrou? Verifique também sua caixa de spam ou lixo eletrônico.',
+              )}
+            </p>
             <div className="pt-4">
               <button
                 type="button"

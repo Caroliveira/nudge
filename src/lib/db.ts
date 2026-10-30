@@ -18,7 +18,15 @@ export interface HouseholdData {
 }
 
 // In-memory fallback cache for development without AWS credentials or tests
-const memoryStore = new Map<string, { profile: HouseholdProfile; tasks: Map<string, Task> }>();
+const globalDb = globalThis as unknown as {
+  __nudge_memory_store__?: Map<string, { profile: HouseholdProfile; tasks: Map<string, Task> }>;
+};
+
+const memoryStore =
+  globalDb.__nudge_memory_store__ ??
+  new Map<string, { profile: HouseholdProfile; tasks: Map<string, Task> }>();
+
+globalDb.__nudge_memory_store__ = memoryStore;
 
 function getMemoryHousehold(householdId: string) {
   if (!memoryStore.has(householdId)) {

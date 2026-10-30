@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const user = await getOrCreateUser(tokenData.email, tokenData.name);
   const response = NextResponse.redirect(new URL('/', request.url));
-  setSessionCookieOnResponse(response, {
+  await setSessionCookieOnResponse(response, {
     email: user.email,
     name: user.name,
     householdId: user.householdId,

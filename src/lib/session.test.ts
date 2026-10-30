@@ -19,45 +19,45 @@ describe('session', () => {
     vi.clearAllMocks();
   });
 
-  it('encodes and decodes session data correctly', () => {
+  it('encodes and decodes session data correctly', async () => {
     const session = { email: 'test@example.com', householdId: 'house-123' };
-    const encoded = encodeSession(session);
-    const decoded = decodeSession(encoded);
+    const encoded = await encodeSession(session);
+    const decoded = await decodeSession(encoded);
 
     expect(decoded).toEqual(session);
   });
 
-  it('rejects tampered cookie payload or signature', () => {
+  it('rejects tampered cookie payload or signature', async () => {
     const session = { email: 'test@example.com', householdId: 'house-123' };
-    const encoded = encodeSession(session);
+    const encoded = await encodeSession(session);
     const [payload, signature] = encoded.split('.');
 
     // Tampered payload
     const forgedPayload = Buffer.from(
       JSON.stringify({ email: 'admin@example.com', householdId: 'house-999' })
     ).toString('base64url');
-    expect(decodeSession(`${forgedPayload}.${signature}`)).toBeNull();
+    expect(await decodeSession(`${forgedPayload}.${signature}`)).toBeNull();
 
     // Tampered signature
-    expect(decodeSession(`${payload}.invalid-sig`)).toBeNull();
+    expect(await decodeSession(`${payload}.invalid-sig`)).toBeNull();
 
     // Wrong secret
-    expect(decodeSession(encoded, 'different-secret-key')).toBeNull();
+    expect(await decodeSession(encoded, 'different-secret-key')).toBeNull();
   });
 
-  it('returns null when decoding invalid formats or missing fields', () => {
-    expect(decodeSession('invalid-format-without-dot')).toBeNull();
-    expect(decodeSession('too.many.dots.here')).toBeNull();
-    expect(decodeSession('')).toBeNull();
-    expect(decodeSession(null as any)).toBeNull();
+  it('returns null when decoding invalid formats or missing fields', async () => {
+    expect(await decodeSession('invalid-format-without-dot')).toBeNull();
+    expect(await decodeSession('too.many.dots.here')).toBeNull();
+    expect(await decodeSession('')).toBeNull();
+    expect(await decodeSession(null as any)).toBeNull();
 
     // Missing email or householdId
     const missingEmail = Buffer.from(JSON.stringify({ householdId: 'h1' })).toString('base64url');
-    expect(decodeSession(`${missingEmail}.any`)).toBeNull();
+    expect(await decodeSession(`${missingEmail}.any`)).toBeNull();
   });
 
   it('retrieves session from cookies', async () => {
-    const validEncoded = encodeSession({ email: 'user@nudge.app', householdId: 'h-456' });
+    const validEncoded = await encodeSession({ email: 'user@nudge.app', householdId: 'h-456' });
     const mockCookieStore = {
       get: vi.fn().mockReturnValue({ value: validEncoded }),
     };

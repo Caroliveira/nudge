@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import type { NextResponse } from 'next/server';
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { SESSION_COOKIE_NAME } from '@/constants';
 
 export interface SessionData {
@@ -23,13 +22,66 @@ export const SESSION_COOKIE_OPTIONS = {
   maxAge: 60 * 60 * 24 * 30, // 30 days
 };
 
-export function encodeSession(data: SessionData, secret = getSecretKey()): string {
-  const payload = Buffer.from(JSON.stringify(data)).toString('base64url');
-  const signature = createHmac('sha256', secret).update(payload).digest('base64url');
+function bufferToBase64Url(buffer: ArrayBuffer | Uint8Array): string {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function base64UrlToUint8Array(base64url: string): Uint8Array {
+  let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4 !== 0) {
+    base64 += '=';
+  }
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function stringToBase64Url(str: string): string {
+  const encoder = new TextEncoder();
+  return bufferToBase64Url(encoder.encode(str));
+}
+
+function base64UrlToString(base64url: string): string {
+  const bytes = base64UrlToUint8Array(base64url);
+  const decoder = new TextDecoder();
+  return decoder.decode(bytes);
+}
+
+async function getHmacKey(secret: string, usage: 'sign' | 'verify'): Promise<CryptoKey> {
+  const encoder = new TextEncoder();
+  return await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    [usage]
+  );
+}
+
+export async function encodeSession(data: SessionData, secret = getSecretKey()): Promise<string> {
+  const payload = stringToBase64Url(JSON.stringify(data));
+  const key = await getHmacKey(secret, 'sign');
+  const encoder = new TextEncoder();
+  const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+  const signature = bufferToBase64Url(signatureBuffer);
   return `${payload}.${signature}`;
 }
 
-export function decodeSession(cookieValue: string, secret = getSecretKey()): SessionData | null {
+export async function decodeSession(
+  cookieValue: string,
+  secret = getSecretKey()
+): Promise<SessionData | null> {
   if (!cookieValue || typeof cookieValue !== 'string') {
     return null;
   }
@@ -45,16 +97,21 @@ export function decodeSession(cookieValue: string, secret = getSecretKey()): Ses
   }
 
   try {
-    const expectedSignature = createHmac('sha256', secret).update(payload).digest('base64url');
+    const key = await getHmacKey(secret, 'verify');
+    const signatureBytes = base64UrlToUint8Array(signature);
+    const encoder = new TextEncoder();
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signatureBytes,
+      encoder.encode(payload)
+    );
 
-    const sigBuffer = Buffer.from(signature);
-    const expectedBuffer = Buffer.from(expectedSignature);
-
-    if (sigBuffer.length !== expectedBuffer.length || !timingSafeEqual(sigBuffer, expectedBuffer)) {
+    if (!isValid) {
       return null;
     }
 
-    const raw = Buffer.from(payload, 'base64url').toString('utf-8');
+    const raw = base64UrlToString(payload);
     const parsed = JSON.parse(raw);
 
     if (
@@ -85,7 +142,7 @@ export async function getSession(): Promise<SessionData | null> {
     const cookieStore = await cookies();
     const cookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (cookie) {
-      return decodeSession(cookie);
+      return await decodeSession(cookie);
     }
   } catch {
     // Graceful fallback when called outside of request context (e.g. tests or client mocks)
@@ -101,9 +158,10 @@ export async function getHouseholdId(): Promise<string> {
 export async function setSessionCookie(session: SessionData): Promise<void> {
   try {
     const cookieStore = await cookies();
+    const value = await encodeSession(session);
     cookieStore.set({
       name: SESSION_COOKIE_NAME,
-      value: encodeSession(session),
+      value,
       ...SESSION_COOKIE_OPTIONS,
     });
   } catch {
@@ -120,10 +178,14 @@ export async function clearSessionCookie(): Promise<void> {
   }
 }
 
-export function setSessionCookieOnResponse(response: NextResponse, session: SessionData): void {
+export async function setSessionCookieOnResponse(
+  response: NextResponse,
+  session: SessionData
+): Promise<void> {
+  const value = await encodeSession(session);
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
-    value: encodeSession(session),
+    value,
     ...SESSION_COOKIE_OPTIONS,
   });
 }
@@ -131,4 +193,3 @@ export function setSessionCookieOnResponse(response: NextResponse, session: Sess
 export function clearSessionCookieOnResponse(response: NextResponse): void {
   response.cookies.delete(SESSION_COOKIE_NAME);
 }
-

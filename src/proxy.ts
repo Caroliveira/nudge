@@ -3,10 +3,10 @@ import type { NextRequest } from 'next/server';
 import { SESSION_COOKIE_NAME, APP_ROUTES } from './constants';
 import { decodeSession } from './lib/session';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-  const session = sessionCookie ? decodeSession(sessionCookie) : null;
+  const session = sessionCookie ? await decodeSession(sessionCookie) : null;
   const isAuthenticated = Boolean(session);
 
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');

@@ -1,7 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowLeft, FileSpreadsheet, Languages, User, LogOut, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  FileSpreadsheet,
+  Languages,
+  User,
+  LogOut,
+  Trash2,
+  AlertTriangle,
+  Loader2,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { SUPPORTED_LANGUAGES, APP_ROUTES } from '../constants';
@@ -171,7 +180,7 @@ const SettingsPage: React.FC = () => {
                       <p className="text-xs text-soft leading-relaxed">
                         {t(
                           'auth.deleteAccountConfirmMessage',
-                          'Todos os seus hábitos, tarefas e histórico serão apagados definitivamente. Esta ação não pode ser desfeita.'
+                          'Todos os seus hábitos, tarefas e histórico serão apagados definitivamente. Esta ação não pode ser desfeita.',
                         )}
                       </p>
                       {deleteError && (

@@ -34,7 +34,7 @@ export interface StoreState {
     tasks: Task[],
     profile?: { currentStreak: number; bestStreak: number; streakLastUpdatedAt?: number },
     userEmail?: string,
-    userName?: string
+    userName?: string,
   ) => void;
   setTasks: (tasks: Task[]) => void;
   setCurrentTask: (task: Task | null) => void;

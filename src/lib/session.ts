@@ -28,10 +28,7 @@ function bufferToBase64Url(buffer: ArrayBuffer | Uint8Array): string {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return btoa(binary)
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 function base64UrlToUint8Array(base64url: string): Uint8Array {
@@ -65,7 +62,7 @@ async function getHmacKey(secret: string, usage: 'sign' | 'verify'): Promise<Cry
     encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    [usage]
+    [usage],
   );
 }
 
@@ -80,7 +77,7 @@ export async function encodeSession(data: SessionData, secret = getSecretKey()):
 
 export async function decodeSession(
   cookieValue: string,
-  secret = getSecretKey()
+  secret = getSecretKey(),
 ): Promise<SessionData | null> {
   if (!cookieValue || typeof cookieValue !== 'string') {
     return null;
@@ -104,7 +101,7 @@ export async function decodeSession(
       'HMAC',
       key,
       signatureBytes,
-      encoder.encode(payload)
+      encoder.encode(payload),
     );
 
     if (!isValid) {
@@ -180,7 +177,7 @@ export async function clearSessionCookie(): Promise<void> {
 
 export async function setSessionCookieOnResponse(
   response: NextResponse,
-  session: SessionData
+  session: SessionData,
 ): Promise<void> {
   const value = await encodeSession(session);
   response.cookies.set({

@@ -54,7 +54,7 @@ describe('email.ts', () => {
       expect.objectContaining({
         to: 'test@nudge.app',
         subject: 'Seu link de acesso ao Nudge',
-      })
+      }),
     );
   });
 
@@ -75,7 +75,7 @@ describe('email.ts', () => {
         to: 'newuser@nudge.app',
         subject: 'Bem-vindo ao Nudge! Confirme seu cadastro',
         html: expect.stringContaining('Olá, Carla!'),
-      })
+      }),
     );
   });
 

@@ -21,7 +21,7 @@ export async function sendMagicLinkEmail({
     console.log(
       `[Nudge Dev Auth] ${isSignUp ? 'Confirmação de Cadastro' : 'Magic Link'} para: ${email}${
         name ? ` (${name})` : ''
-      }`
+      }`,
     );
     console.log(`URL: ${magicLinkUrl}`);
     console.log('=============================================================\n');

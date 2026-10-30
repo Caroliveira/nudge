@@ -13,15 +13,16 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const isSettingsPage = pathname === APP_ROUTES.SETTINGS;
+  const isAuthPage = pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER;
 
   return (
-    <main className="min-h-dvh w-full flex flex-col items-center justify-center bg-warm px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] select-none overflow-x-hidden relative">
+    <main className="min-h-dvh w-full flex flex-col items-center justify-center bg-warm px-3 sm:px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] select-none overflow-x-hidden relative">
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none opacity-30 overflow-hidden">
         <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-surface rounded-full blur-3xl" />
         <div className="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-surface rounded-full blur-3xl" />
       </div>
 
-      {!isSettingsPage && (
+      {!isSettingsPage && !isAuthPage && (
         <Link
           href={APP_ROUTES.SETTINGS}
           className="absolute top-6 right-6 p-2 text-soft hover:text-accent transition-colors z-50 rounded-full hover:bg-surface/50"

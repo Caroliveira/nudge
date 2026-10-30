@@ -176,4 +176,3 @@ describe('auth.ts - DynamoDB configured branch', () => {
     expect(result).toBe(true);
   });
 });
-

@@ -55,9 +55,7 @@ export const useStore = create<StoreState>()((set) => ({
       const previousUpdate = state.streakLastUpdatedAt;
 
       if (previousUpdate && isSameDay(previousUpdate, completedAt)) {
-        return state.currentStreak > state.bestStreak
-          ? { bestStreak: state.currentStreak }
-          : {};
+        return state.currentStreak > state.bestStreak ? { bestStreak: state.currentStreak } : {};
       }
 
       const currentStreak =
@@ -93,7 +91,7 @@ export const useStore = create<StoreState>()((set) => ({
     }));
     if (typeof window !== 'undefined') {
       createTaskAction(task).catch((err) =>
-        console.error('Failed to persist task to DynamoDB', err)
+        console.error('Failed to persist task to DynamoDB', err),
       );
     }
   },
@@ -107,7 +105,7 @@ export const useStore = create<StoreState>()((set) => ({
     }));
     if (typeof window !== 'undefined') {
       updateTaskAction(id, updates).catch((err) =>
-        console.error('Failed to update task in DynamoDB', err)
+        console.error('Failed to update task in DynamoDB', err),
       );
     }
   },
@@ -119,9 +117,7 @@ export const useStore = create<StoreState>()((set) => ({
       return { tasks: newTasks };
     });
     if (typeof window !== 'undefined') {
-      deleteTaskAction(id).catch((err) =>
-        console.error('Failed to delete task in DynamoDB', err)
-      );
+      deleteTaskAction(id).catch((err) => console.error('Failed to delete task in DynamoDB', err));
     }
   },
 
@@ -138,7 +134,7 @@ export const useStore = create<StoreState>()((set) => ({
     });
     if (typeof window !== 'undefined') {
       refreshRecurringTasksAction().catch((err) =>
-        console.error('Failed to refresh tasks in DynamoDB', err)
+        console.error('Failed to refresh tasks in DynamoDB', err),
       );
     }
   },

@@ -34,7 +34,7 @@ describe('session', () => {
 
     // Tampered payload
     const forgedPayload = Buffer.from(
-      JSON.stringify({ email: 'admin@example.com', householdId: 'house-999' })
+      JSON.stringify({ email: 'admin@example.com', householdId: 'house-999' }),
     ).toString('base64url');
     expect(await decodeSession(`${forgedPayload}.${signature}`)).toBeNull();
 
@@ -99,7 +99,7 @@ describe('session', () => {
         name: SESSION_COOKIE_NAME,
         path: '/',
         httpOnly: true,
-      })
+      }),
     );
   });
 

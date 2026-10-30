@@ -9,7 +9,10 @@ export async function proxy(request: NextRequest) {
   const session = sessionCookie ? await decodeSession(sessionCookie) : null;
   const isAuthenticated = Boolean(session);
 
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/auth');
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/auth');
 
   // Unauthenticated user trying to access protected route -> redirect to /login
   if (!isAuthenticated && !isAuthRoute) {
@@ -21,8 +24,8 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Authenticated user trying to access /login -> redirect to /
-  if (isAuthenticated && pathname.startsWith('/login')) {
+  // Authenticated user trying to access /login or /register -> redirect to /
+  if (isAuthenticated && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
     const homeUrl = new URL(APP_ROUTES.HOME, request.url);
     return NextResponse.redirect(homeUrl);
   }

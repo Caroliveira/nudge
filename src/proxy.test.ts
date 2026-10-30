@@ -29,6 +29,13 @@ describe('proxy', () => {
     expect(response.status).toBe(200);
   });
 
+  it('allows unauthenticated user accessing /register', async () => {
+    const request = new NextRequest('http://localhost:3000/register');
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+  });
+
   it('allows unauthenticated user accessing /auth/verify', async () => {
     const request = new NextRequest('http://localhost:3000/auth/verify?token=123');
     const response = await proxy(request);
@@ -38,6 +45,18 @@ describe('proxy', () => {
 
   it('redirects authenticated user accessing /login to /', async () => {
     const request = new NextRequest('http://localhost:3000/login', {
+      headers: {
+        cookie: `${SESSION_COOKIE_NAME}=${validSessionCookie}`,
+      },
+    });
+    const response = await proxy(request);
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('http://localhost:3000/');
+  });
+
+  it('redirects authenticated user accessing /register to /', async () => {
+    const request = new NextRequest('http://localhost:3000/register', {
       headers: {
         cookie: `${SESSION_COOKIE_NAME}=${validSessionCookie}`,
       },

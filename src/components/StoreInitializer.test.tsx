@@ -36,7 +36,7 @@ describe('StoreInitializer', () => {
         }}
         userEmail="test@example.com"
         userName="Test User"
-      />
+      />,
     );
 
     const state = useStore.getState();
@@ -50,10 +50,7 @@ describe('StoreInitializer', () => {
 
   it('updates store when props change', () => {
     const { rerender } = render(
-      <StoreInitializer
-        tasks={sampleTasks}
-        profile={{ currentStreak: 1, bestStreak: 1 }}
-      />
+      <StoreInitializer tasks={sampleTasks} profile={{ currentStreak: 1, bestStreak: 1 }} />,
     );
 
     expect(useStore.getState().currentStreak).toBe(1);
@@ -70,10 +67,7 @@ describe('StoreInitializer', () => {
     ];
 
     rerender(
-      <StoreInitializer
-        tasks={updatedTasks}
-        profile={{ currentStreak: 2, bestStreak: 2 }}
-      />
+      <StoreInitializer tasks={updatedTasks} profile={{ currentStreak: 2, bestStreak: 2 }} />,
     );
 
     const state = useStore.getState();

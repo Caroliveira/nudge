@@ -28,7 +28,7 @@ function safeRevalidate(path: string) {
 }
 
 export async function recordTaskCompletionAction(
-  completedAt = Date.now()
+  completedAt = Date.now(),
 ): Promise<HouseholdProfile> {
   const householdId = await getHouseholdId();
   const { profile } = await getHouseholdData(householdId);
@@ -55,7 +55,7 @@ export async function createTaskAction(taskData: Omit<Task, 'id'>): Promise<Task
 
 export async function updateTaskAction(
   taskId: string,
-  updates: Partial<Task>
+  updates: Partial<Task>,
 ): Promise<Task | null> {
   const householdId = await getHouseholdId();
   const updated = await updateTask(householdId, taskId, updates);
@@ -105,7 +105,7 @@ export interface SendMagicLinkOptions {
 
 export async function sendMagicLinkAction(
   email: string,
-  options?: SendMagicLinkOptions
+  options?: SendMagicLinkOptions,
 ): Promise<{ success: boolean; error?: string }> {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const normalizedEmail = email ? email.trim().toLowerCase() : '';
@@ -185,4 +185,3 @@ export async function deleteAccountAction(): Promise<{ success: boolean; error?:
     return { success: false, error: message };
   }
 }
-

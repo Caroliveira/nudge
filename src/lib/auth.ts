@@ -264,4 +264,3 @@ export async function deleteUserAccount(email: string): Promise<boolean> {
     return true;
   }
 }
-

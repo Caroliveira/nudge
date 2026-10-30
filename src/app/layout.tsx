@@ -48,11 +48,7 @@ export const viewport: Viewport = {
   themeColor: '#ffffff',
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
   const householdId = session?.householdId || 'default-household';
   const { profile, tasks } = await getHouseholdData(householdId);

@@ -150,7 +150,7 @@ describe('db.ts - DynamoDB configured branch', () => {
     mockSend.mockResolvedValueOnce({});
 
     await expect(
-      saveHouseholdProfile('h1', { currentStreak: 3, bestStreak: 5 })
+      saveHouseholdProfile('h1', { currentStreak: 3, bestStreak: 5 }),
     ).resolves.not.toThrow();
     expect(mockSend).toHaveBeenCalledTimes(1);
   });
@@ -159,7 +159,7 @@ describe('db.ts - DynamoDB configured branch', () => {
     mockSend.mockRejectedValueOnce(new Error('Profile save failed'));
 
     await expect(
-      saveHouseholdProfile('h1', { currentStreak: 3, bestStreak: 5 })
+      saveHouseholdProfile('h1', { currentStreak: 3, bestStreak: 5 }),
     ).resolves.not.toThrow();
   });
 
@@ -183,4 +183,3 @@ describe('db.ts - DynamoDB configured branch', () => {
     await expect(deleteHouseholdData('h1')).resolves.not.toThrow();
   });
 });
-

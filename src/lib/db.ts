@@ -1,8 +1,4 @@
-import {
-  QueryCommand,
-  PutCommand,
-  DeleteCommand,
-} from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { differenceInCalendarDays, isSameDay } from 'date-fns';
 import { docClient, TABLE_NAME, isDynamoConfigured } from './dynamodb';
 import { Task, EffortLevel, RecurrenceUnit } from '@/types';
@@ -104,7 +100,7 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
  */
 export async function createTask(
   householdId: string,
-  taskInput: Omit<Task, 'id'> & { id?: string }
+  taskInput: Omit<Task, 'id'> & { id?: string },
 ): Promise<Task> {
   const task: Task = {
     ...taskInput,
@@ -155,7 +151,7 @@ export async function createTask(
 export async function updateTask(
   householdId: string,
   taskId: string,
-  updates: Partial<Task>
+  updates: Partial<Task>,
 ): Promise<Task | null> {
   const householdData = await getHouseholdData(householdId);
   const existing = householdData.tasks.find((t) => t.id === taskId);
@@ -264,7 +260,7 @@ export async function deleteHouseholdData(householdId: string): Promise<void> {
               PK: item.PK,
               SK: item.SK,
             },
-          })
+          }),
         );
       }
     }
@@ -278,7 +274,7 @@ export async function deleteHouseholdData(householdId: string): Promise<void> {
  */
 export async function toggleTaskCompletion(
   householdId: string,
-  taskId: string
+  taskId: string,
 ): Promise<{ task: Task; profile: HouseholdProfile } | null> {
   const { profile, tasks } = await getHouseholdData(householdId);
   const task = tasks.find((t) => t.id === taskId);
@@ -305,7 +301,7 @@ export async function toggleTaskCompletion(
  */
 export function calculateNewStreak(
   currentProfile: HouseholdProfile,
-  completedAt = Date.now()
+  completedAt = Date.now(),
 ): HouseholdProfile {
   const previousUpdate = currentProfile.streakLastUpdatedAt;
 
@@ -333,7 +329,7 @@ export function calculateNewStreak(
  */
 export async function saveHouseholdProfile(
   householdId: string,
-  profile: HouseholdProfile
+  profile: HouseholdProfile,
 ): Promise<void> {
   const now = Date.now();
 

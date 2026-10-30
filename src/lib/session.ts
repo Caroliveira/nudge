@@ -5,6 +5,7 @@ import { SESSION_COOKIE_NAME } from '@/constants';
 
 export interface SessionData {
   email: string;
+  name?: string;
   householdId: string;
 }
 
@@ -66,6 +67,9 @@ export function decodeSession(cookieValue: string, secret = getSecretKey()): Ses
     ) {
       return {
         email: parsed.email.trim().toLowerCase(),
+        ...(typeof parsed.name === 'string' && parsed.name.trim().length > 0
+          ? { name: parsed.name.trim() }
+          : {}),
         householdId: parsed.householdId.trim(),
       };
     }

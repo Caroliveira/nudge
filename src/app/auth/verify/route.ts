@@ -9,14 +9,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/login?error=missing_token', request.url));
   }
 
-  const email = await verifyMagicLinkToken(token);
-  if (!email) {
+  const tokenData = await verifyMagicLinkToken(token);
+  if (!tokenData) {
     return NextResponse.redirect(new URL('/login?error=invalid_token', request.url));
   }
 
-  const user = await getOrCreateUser(email);
+  const user = await getOrCreateUser(tokenData.email, tokenData.name);
   const response = NextResponse.redirect(new URL('/', request.url));
-  setSessionCookieOnResponse(response, { email: user.email, householdId: user.householdId });
+  setSessionCookieOnResponse(response, {
+    email: user.email,
+    name: user.name,
+    householdId: user.householdId,
+  });
 
   return response;
 }

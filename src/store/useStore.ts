@@ -17,11 +17,13 @@ export const useStore = create<StoreState>()((set) => ({
   bestStreak: 0,
   streakLastUpdatedAt: undefined,
   userEmail: undefined,
+  userName: undefined,
 
-  initializeFromSSR: (tasks, profile, userEmail) =>
+  initializeFromSSR: (tasks, profile, userEmail, userName) =>
     set({
       tasks,
       ...(userEmail ? { userEmail } : {}),
+      ...(userName ? { userName } : {}),
       ...(profile
         ? {
             currentStreak: profile.currentStreak,
@@ -45,6 +47,7 @@ export const useStore = create<StoreState>()((set) => ({
       bestStreak: 0,
       streakLastUpdatedAt: undefined,
       userEmail: undefined,
+      userName: undefined,
     }),
 
   recordTaskCompletion: (completedAt = Date.now()) => {

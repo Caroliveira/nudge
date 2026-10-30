@@ -58,6 +58,27 @@ describe('email.ts', () => {
     );
   });
 
+  it('customizes subject and greeting for registration with name', async () => {
+    process.env.RESEND_API_KEY = 're_test_key_123';
+    mockSend.mockResolvedValueOnce({ data: { id: 'email_456' }, error: null });
+
+    const result = await sendMagicLinkEmail({
+      email: 'newuser@nudge.app',
+      name: 'Carla',
+      isSignUp: true,
+      magicLinkUrl: 'http://localhost:3000/auth/verify?token=456',
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockSend).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'newuser@nudge.app',
+        subject: 'Bem-vindo ao Nudge! Confirme seu cadastro',
+        html: expect.stringContaining('Olá, Carla!'),
+      })
+    );
+  });
+
   it('returns failure when Resend rejects', async () => {
     process.env.RESEND_API_KEY = 're_test_key_123';
     mockSend.mockRejectedValueOnce(new Error('Resend rate limit exceeded'));

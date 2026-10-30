@@ -14,7 +14,7 @@ import {
   saveHouseholdProfile,
   HouseholdProfile,
 } from '@/lib/db';
-import { createMagicLinkToken } from '@/lib/auth';
+import { createMagicLinkToken, findUserByEmail } from '@/lib/auth';
 import { sendMagicLinkEmail } from '@/lib/email';
 import { Task } from '@/types';
 
@@ -97,16 +97,41 @@ export async function refreshRecurringTasksAction(): Promise<Task[]> {
   return tasks;
 }
 
+export interface SendMagicLinkOptions {
+  name?: string;
+  mode?: 'login' | 'register';
+}
+
 export async function sendMagicLinkAction(
-  email: string
+  email: string,
+  options?: SendMagicLinkOptions
 ): Promise<{ success: boolean; error?: string }> {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email.trim())) {
-    return { success: false, error: 'Por favor, insira um e-mail válido.' };
+  const normalizedEmail = email ? email.trim().toLowerCase() : '';
+
+  if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+    return { success: false, error: 'invalid_email' };
+  }
+
+  const mode = options?.mode || 'login';
+  const name = options?.name?.trim();
+
+  if (mode === 'register' && (!name || name.length < 2)) {
+    return { success: false, error: 'invalid_name' };
   }
 
   try {
-    const token = await createMagicLinkToken(email);
+    const existingUser = await findUserByEmail(normalizedEmail);
+
+    if (mode === 'login' && !existingUser) {
+      return { success: false, error: 'account_not_found' };
+    }
+
+    if (mode === 'register' && existingUser) {
+      return { success: false, error: 'account_already_exists' };
+    }
+
+    const token = await createMagicLinkToken(normalizedEmail, name);
 
     let baseUrl = process.env.APP_URL;
     if (!baseUrl) {
@@ -122,7 +147,12 @@ export async function sendMagicLinkAction(
     }
 
     const magicLinkUrl = `${baseUrl}/auth/verify?token=${token}`;
-    return await sendMagicLinkEmail({ email: email.trim(), magicLinkUrl });
+    return await sendMagicLinkEmail({
+      email: normalizedEmail,
+      magicLinkUrl,
+      name: name || existingUser?.name,
+      isSignUp: mode === 'register',
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Erro ao processar envio do link';
     console.error('[sendMagicLinkAction Error]', error);

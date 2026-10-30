@@ -13,6 +13,7 @@ import { logoutAction } from '@/app/actions';
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const userName = useStore((state) => state.userName);
   const userEmail = useStore((state) => state.userEmail);
   const resetStore = useStore((state) => state.resetStore);
 
@@ -109,7 +110,7 @@ const SettingsPage: React.FC = () => {
                 {t('auth.loggedInAs', 'Conectado como')}
               </span>
               <span className="text-text font-medium text-sm">
-                {userEmail || 'Conta local'}
+                {userName ? `${userName} (${userEmail})` : userEmail || 'Conta local'}
               </span>
             </div>
             <button

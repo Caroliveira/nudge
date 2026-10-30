@@ -60,7 +60,12 @@ export default async function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${lora.variable}`}>
       <body className="bg-warm text-text font-sans antialiased min-h-dvh">
-        <StoreInitializer tasks={tasks} profile={profile} userEmail={session?.email} />
+        <StoreInitializer
+          tasks={tasks}
+          profile={profile}
+          userEmail={session?.email}
+          userName={session?.name}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

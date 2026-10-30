@@ -35,6 +35,7 @@ describe('StoreInitializer', () => {
           streakLastUpdatedAt: 123456789,
         }}
         userEmail="test@example.com"
+        userName="Test User"
       />
     );
 
@@ -44,6 +45,7 @@ describe('StoreInitializer', () => {
     expect(state.currentStreak).toBe(3);
     expect(state.bestStreak).toBe(7);
     expect(state.userEmail).toBe('test@example.com');
+    expect(state.userName).toBe('Test User');
   });
 
   it('updates store when props change', () => {

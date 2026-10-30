@@ -101,9 +101,47 @@ describe('actions.ts', () => {
   it('validates email format in sendMagicLinkAction', async () => {
     const invalidResult = await sendMagicLinkAction('not-an-email');
     expect(invalidResult.success).toBe(false);
-    expect(invalidResult.error).toContain('e-mail válido');
+    expect(invalidResult.error).toBe('invalid_email');
+  });
 
-    const validResult = await sendMagicLinkAction('valid@nudge.app');
-    expect(validResult.success).toBe(true);
+  it('validates name for registration mode in sendMagicLinkAction', async () => {
+    const invalidNameResult = await sendMagicLinkAction('valid@nudge.app', {
+      mode: 'register',
+      name: 'a',
+    });
+    expect(invalidNameResult.success).toBe(false);
+    expect(invalidNameResult.error).toBe('invalid_name');
+  });
+
+  it('handles registration flow and prevents duplicate registration', async () => {
+    const email = `reg-${Date.now()}@nudge.app`;
+    const regResult = await sendMagicLinkAction(email, {
+      mode: 'register',
+      name: 'New User',
+    });
+    expect(regResult.success).toBe(true);
+
+    // Simulate user creation (as done after token verification)
+    const { getOrCreateUser } = await import('@/lib/auth');
+    await getOrCreateUser(email, 'New User');
+
+    // Trying to register again should return account_already_exists
+    const duplicateReg = await sendMagicLinkAction(email, {
+      mode: 'register',
+      name: 'New User',
+    });
+    expect(duplicateReg.success).toBe(false);
+    expect(duplicateReg.error).toBe('account_already_exists');
+
+    // Login for existing user should succeed
+    const loginResult = await sendMagicLinkAction(email, { mode: 'login' });
+    expect(loginResult.success).toBe(true);
+  });
+
+  it('returns account_not_found when logging in with unregistered email', async () => {
+    const result = await sendMagicLinkAction('unregistered@nudge.app', { mode: 'login' });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('account_not_found');
   });
 });
+

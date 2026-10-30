@@ -29,9 +29,9 @@ dist-ssr
 *.jks
 
 # Android / Bubblewrap generated files
-.gradle/
-app/
-build/
+/app/
+/android/
+/.gradle/
 gradle/
 build.gradle
 gradle.properties
@@ -52,3 +52,4 @@ coverage/
 .agents/
 .agents
 *.tsbuildinfo
+AGENTS.md

@@ -11,6 +11,7 @@ export interface AuthToken {
   token: string;
   email: string;
   expiresAt: number;
+  ttl?: number;
   createdAt: number;
 }
 
@@ -26,11 +27,13 @@ export async function createMagicLinkToken(email: string): Promise<string> {
   const token = crypto.randomUUID();
   const now = Date.now();
   const expiresAt = now + 15 * 60 * 1000; // 15 minutes
+  const ttl = Math.floor(expiresAt / 1000); // DynamoDB TTL attribute expects UNIX timestamp in seconds
 
   const authToken: AuthToken = {
     token,
     email: normalizedEmail,
     expiresAt,
+    ttl,
     createdAt: now,
   };
 
@@ -49,6 +52,7 @@ export async function createMagicLinkToken(email: string): Promise<string> {
         token,
         email: normalizedEmail,
         expiresAt,
+        ttl,
         createdAt: now,
       },
     });
@@ -63,7 +67,7 @@ export async function createMagicLinkToken(email: string): Promise<string> {
 }
 
 /**
- * Verifies and invalidates a magic link token.
+ * Verifies and invalidates a magic link token atomically.
  * Returns the email if valid and not expired, otherwise returns null.
  */
 export async function verifyMagicLinkToken(token: string): Promise<string | null> {
@@ -78,30 +82,22 @@ export async function verifyMagicLinkToken(token: string): Promise<string | null
   }
 
   try {
-    const getCommand = new GetCommand({
-      TableName: TABLE_NAME,
-      Key: {
-        PK: `AUTH_TOKEN#${token}`,
-        SK: 'TOKEN',
-      },
-    });
-
-    const response = await docClient.send(getCommand);
-    const item = response.Item as AuthToken | undefined;
-
-    if (!item) {
-      return null;
-    }
-
-    // Delete single-use token immediately
+    // Atomic single-step delete and return: guarantees strictly single-use and prevents race conditions
     const deleteCommand = new DeleteCommand({
       TableName: TABLE_NAME,
       Key: {
         PK: `AUTH_TOKEN#${token}`,
         SK: 'TOKEN',
       },
+      ReturnValues: 'ALL_OLD',
     });
-    await docClient.send(deleteCommand);
+
+    const response = await docClient.send(deleteCommand);
+    const item = response.Attributes as AuthToken | undefined;
+
+    if (!item) {
+      return null;
+    }
 
     if (now > item.expiresAt) {
       return null;

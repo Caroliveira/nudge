@@ -29,6 +29,15 @@ aws dynamodb create-table \
 
 *(Ou modo Provisioned com 5 RCU e 5 WCU, ambos 100% dentro do Free Tier permanente da AWS).*
 
+### Ativar Time to Live (TTL) para tokens de autenticação:
+Para que tokens temporários de login sejam automaticamente removidos da tabela sem custos de escrita:
+```bash
+aws dynamodb update-time-to-live \
+    --table-name nudge_tasks \
+    --time-to-live-specification "Enabled=true, AttributeName=ttl"
+```
+
+
 ---
 
 ## 3. Variáveis de Ambiente (`.env.local`)

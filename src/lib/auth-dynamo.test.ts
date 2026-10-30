@@ -21,12 +21,17 @@ describe('auth.ts - DynamoDB configured branch', () => {
     vi.clearAllMocks();
   });
 
-  it('saves magic link token via DynamoDB PutCommand', async () => {
+  it('saves magic link token via DynamoDB PutCommand with TTL in seconds', async () => {
     mockSend.mockResolvedValueOnce({});
 
     const token = await createMagicLinkToken('dynamo@example.com');
     expect(token).toBeDefined();
     expect(mockSend).toHaveBeenCalledTimes(1);
+
+    const callInput = mockSend.mock.calls[0][0].input;
+    expect(callInput.Item.ttl).toBeDefined();
+    expect(typeof callInput.Item.ttl).toBe('number');
+    expect(callInput.Item.ttl).toBe(Math.floor(callInput.Item.expiresAt / 1000));
   });
 
   it('falls back to memory on createMagicLinkToken error', async () => {
@@ -36,33 +41,41 @@ describe('auth.ts - DynamoDB configured branch', () => {
     expect(token).toBeDefined();
   });
 
-  it('verifies token via DynamoDB GetCommand and deletes via DeleteCommand', async () => {
+  it('verifies and consumes token atomically via single-step DeleteCommand', async () => {
     mockSend.mockResolvedValueOnce({
-      Item: {
+      Attributes: {
         PK: 'AUTH_TOKEN#token-123',
         SK: 'TOKEN',
         token: 'token-123',
         email: 'user@example.com',
         expiresAt: Date.now() + 60000,
+        ttl: Math.floor((Date.now() + 60000) / 1000),
       },
     });
-    mockSend.mockResolvedValueOnce({}); // DeleteCommand
 
     const email = await verifyMagicLinkToken('token-123');
     expect(email).toBe('user@example.com');
-    expect(mockSend).toHaveBeenCalledTimes(2);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+
+    const callInput = mockSend.mock.calls[0][0].input;
+    expect(callInput.ReturnValues).toBe('ALL_OLD');
+    expect(callInput.Key).toEqual({
+      PK: 'AUTH_TOKEN#token-123',
+      SK: 'TOKEN',
+    });
   });
 
   it('returns null if token not found in DynamoDB', async () => {
-    mockSend.mockResolvedValueOnce({ Item: undefined });
+    mockSend.mockResolvedValueOnce({ Attributes: undefined });
 
     const email = await verifyMagicLinkToken('missing-token');
     expect(email).toBeNull();
+    expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it('returns null if token in DynamoDB has expired', async () => {
     mockSend.mockResolvedValueOnce({
-      Item: {
+      Attributes: {
         PK: 'AUTH_TOKEN#expired-token',
         SK: 'TOKEN',
         token: 'expired-token',
@@ -70,14 +83,14 @@ describe('auth.ts - DynamoDB configured branch', () => {
         expiresAt: Date.now() - 10000,
       },
     });
-    mockSend.mockResolvedValueOnce({}); // DeleteCommand
 
     const email = await verifyMagicLinkToken('expired-token');
     expect(email).toBeNull();
+    expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to memory on verifyMagicLinkToken error', async () => {
-    mockSend.mockRejectedValueOnce(new Error('DynamoDB get error'));
+    mockSend.mockRejectedValueOnce(new Error('DynamoDB delete error'));
 
     const result = await verifyMagicLinkToken('error-token');
     expect(result).toBeNull();

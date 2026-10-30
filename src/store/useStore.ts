@@ -36,6 +36,17 @@ export const useStore = create<StoreState>()((set) => ({
   setSelectedLevel: (selectedLevel) => set({ selectedLevel }),
   setBestStreak: (bestStreak) => set({ bestStreak }),
 
+  resetStore: () =>
+    set({
+      tasks: [],
+      currentTask: null,
+      selectedLevel: null,
+      currentStreak: 0,
+      bestStreak: 0,
+      streakLastUpdatedAt: undefined,
+      userEmail: undefined,
+    }),
+
   recordTaskCompletion: (completedAt = Date.now()) => {
     set((state) => {
       const previousUpdate = state.streakLastUpdatedAt;

@@ -4,7 +4,7 @@ import React from 'react';
 import { ArrowLeft, FileSpreadsheet, Languages, User, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
-import { SUPPORTED_LANGUAGES } from '../constants';
+import { SUPPORTED_LANGUAGES, APP_ROUTES } from '../constants';
 import CsvExport from '@/components/CsvExport';
 import CsvImport from '@/components/CsvImport';
 import { useStore } from '@/store/useStore';
@@ -14,6 +14,7 @@ const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const userEmail = useStore((state) => state.userEmail);
+  const resetStore = useStore((state) => state.resetStore);
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);
@@ -21,7 +22,8 @@ const SettingsPage: React.FC = () => {
 
   const handleLogout = async () => {
     await logoutAction();
-    router.push('/login');
+    resetStore();
+    router.push(APP_ROUTES.LOGIN);
   };
 
   return (

@@ -172,4 +172,27 @@ describe('useStore', () => {
     const { tasks } = useStore.getState();
     expect(tasks[0].isCompleted).toBe(true);
   });
+
+  it('resets the store to initial empty values', () => {
+    useStore.setState({
+      tasks: [{ id: '1', title: 'Task', level: EffortLevel.LOW } as Task],
+      currentTask: { id: '1', title: 'Task', level: EffortLevel.LOW } as Task,
+      selectedLevel: EffortLevel.LOW,
+      currentStreak: 5,
+      bestStreak: 10,
+      streakLastUpdatedAt: Date.now(),
+      userEmail: 'user@example.com',
+    });
+
+    useStore.getState().resetStore();
+
+    const state = useStore.getState();
+    expect(state.tasks).toEqual([]);
+    expect(state.currentTask).toBeNull();
+    expect(state.selectedLevel).toBeNull();
+    expect(state.currentStreak).toBe(0);
+    expect(state.bestStreak).toBe(0);
+    expect(state.streakLastUpdatedAt).toBeUndefined();
+    expect(state.userEmail).toBeUndefined();
+  });
 });

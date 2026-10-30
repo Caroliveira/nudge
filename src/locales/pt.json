@@ -211,5 +211,21 @@
     "csv": {
       "title": "CSV"
     }
+  },
+  "auth": {
+    "title": "Entrar no Nudge",
+    "subtitle": "Acesse seu espaço de tarefas com calma e sem senhas para memorizar.",
+    "emailLabel": "Seu e-mail",
+    "emailPlaceholder": "seu@email.com",
+    "sendButton": "Receber link de acesso",
+    "sending": "Enviando link...",
+    "sentTitle": "Link de acesso enviado!",
+    "sentMessage": "Enviamos um link mágico para {{email}}. Verifique sua caixa de entrada para entrar.",
+    "tryAnother": "Entrar com outro e-mail",
+    "invalidToken": "Este link de acesso expirou ou já foi utilizado. Solicite um novo.",
+    "invalidEmail": "Por favor, insira um e-mail válido.",
+    "account": "Conta",
+    "loggedInAs": "Conectado como",
+    "logout": "Sair da conta"
   }
 }

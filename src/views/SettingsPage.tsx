@@ -1,19 +1,27 @@
 'use client';
 
 import React from 'react';
-import { ArrowLeft, FileSpreadsheet, Languages } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, Languages, User, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { SUPPORTED_LANGUAGES } from '../constants';
 import CsvExport from '@/components/CsvExport';
 import CsvImport from '@/components/CsvImport';
+import { useStore } from '@/store/useStore';
+import { logoutAction } from '@/app/actions';
 
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const userEmail = useStore((state) => state.userEmail);
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);
+  };
+
+  const handleLogout = async () => {
+    await logoutAction();
+    router.push('/login');
   };
 
   return (
@@ -80,6 +88,36 @@ const SettingsPage: React.FC = () => {
               ))}
             </div>
           </section>
+        </div>
+
+        <div className="bg-surface/30 p-6 rounded-3xl border border-surface space-y-4">
+          <section>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center border border-accent/30">
+                <User className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <h2 className="text-xl font-semibold tracking-tight text-text">
+                {t('auth.account', 'Conta')}
+              </h2>
+            </div>
+          </section>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+            <div>
+              <span className="text-xs uppercase tracking-wider text-soft block">
+                {t('auth.loggedInAs', 'Conectado como')}
+              </span>
+              <span className="text-text font-medium text-sm">
+                {userEmail || 'Conta local'}
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors text-sm font-medium self-start sm:self-auto"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>{t('auth.logout', 'Sair da conta')}</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

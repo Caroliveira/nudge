@@ -211,5 +211,21 @@
       "title": "Appearance"
     },
     "comingSoon": "Coming soon..."
+  },
+  "auth": {
+    "title": "Sign in to Nudge",
+    "subtitle": "Access your task space calmly without passwords to remember.",
+    "emailLabel": "Your email",
+    "emailPlaceholder": "you@example.com",
+    "sendButton": "Get magic sign-in link",
+    "sending": "Sending link...",
+    "sentTitle": "Access link sent!",
+    "sentMessage": "We sent a magic link to {{email}}. Check your inbox to sign in.",
+    "tryAnother": "Use another email",
+    "invalidToken": "This access link has expired or has already been used. Please request a new one.",
+    "invalidEmail": "Please enter a valid email address.",
+    "account": "Account",
+    "loggedInAs": "Signed in as",
+    "logout": "Sign out"
   }
 }

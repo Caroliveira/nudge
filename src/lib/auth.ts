@@ -235,3 +235,33 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
     return newUser;
   }
 }
+
+/**
+ * Deletes a user account from DynamoDB and the in-memory fallback.
+ */
+export async function deleteUserAccount(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  memoryUsers.delete(normalizedEmail);
+
+  if (!isDynamoConfigured) {
+    return true;
+  }
+
+  try {
+    const command = new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `USER#${normalizedEmail}`,
+        SK: 'ACCOUNT',
+      },
+    });
+
+    await docClient.send(command);
+    return true;
+  } catch (error) {
+    console.warn('[DynamoDB] Error deleting user account, fallback to memory:', error);
+    return true;
+  }
+}
+

@@ -238,6 +238,13 @@
     "accountAlreadyExists": "Este e-mail já possui cadastro. Acesse pela aba 'Entrar'!",
     "account": "Conta",
     "loggedInAs": "Conectado como",
-    "logout": "Sair da conta"
+    "logout": "Sair da conta",
+    "deleteAccount": "Excluir conta",
+    "deleteAccountConfirmTitle": "Excluir conta permanentemente?",
+    "deleteAccountConfirmMessage": "Todos os seus hábitos, tarefas e histórico serão apagados definitivamente. Esta ação não pode ser desfeita.",
+    "deleteAccountConfirmButton": "Sim, excluir minha conta",
+    "deletingAccount": "Excluindo...",
+    "cancel": "Cancelar"
   }
 }
+

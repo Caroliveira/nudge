@@ -15,6 +15,7 @@ import {
   verifyMagicLinkToken,
   getOrCreateUser,
   findUserByEmail,
+  deleteUserAccount,
 } from './auth';
 
 describe('auth.ts - DynamoDB configured branch', () => {
@@ -153,4 +154,26 @@ describe('auth.ts - DynamoDB configured branch', () => {
     const user = await findUserByEmail('notfound@example.com');
     expect(user).toBeNull();
   });
+
+  it('deletes user account via DynamoDB DeleteCommand', async () => {
+    mockSend.mockResolvedValueOnce({});
+
+    const result = await deleteUserAccount('delete-dynamo@example.com');
+    expect(result).toBe(true);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+
+    const callInput = mockSend.mock.calls[0][0].input;
+    expect(callInput.Key).toEqual({
+      PK: 'USER#delete-dynamo@example.com',
+      SK: 'ACCOUNT',
+    });
+  });
+
+  it('handles error gracefully when deleteUserAccount DynamoDB fails', async () => {
+    mockSend.mockRejectedValueOnce(new Error('DynamoDB delete error'));
+
+    const result = await deleteUserAccount('error-delete@example.com');
+    expect(result).toBe(true);
+  });
 });
+

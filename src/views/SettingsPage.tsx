@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
-import { ArrowLeft, FileSpreadsheet, Languages, User, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, FileSpreadsheet, Languages, User, LogOut, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
 import { SUPPORTED_LANGUAGES, APP_ROUTES } from '../constants';
 import CsvExport from '@/components/CsvExport';
 import CsvImport from '@/components/CsvImport';
 import { useStore } from '@/store/useStore';
-import { logoutAction } from '@/app/actions';
+import { logoutAction, deleteAccountAction } from '@/app/actions';
 
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -16,6 +16,10 @@ const SettingsPage: React.FC = () => {
   const userName = useStore((state) => state.userName);
   const userEmail = useStore((state) => state.userEmail);
   const resetStore = useStore((state) => state.resetStore);
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);
@@ -25,6 +29,24 @@ const SettingsPage: React.FC = () => {
     await logoutAction();
     resetStore();
     router.push(APP_ROUTES.LOGIN);
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const result = await deleteAccountAction();
+      if (result.success) {
+        resetStore();
+        router.push(APP_ROUTES.LOGIN);
+      } else {
+        setDeleteError(result.error || 'Failed to delete account');
+      }
+    } catch {
+      setDeleteError('Failed to delete account');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -121,6 +143,76 @@ const SettingsPage: React.FC = () => {
               <span>{t('auth.logout', 'Sair da conta')}</span>
             </button>
           </div>
+          {userEmail && (
+            <div className="pt-3 border-t border-surface/50">
+              {!showDeleteConfirm ? (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setDeleteError(null);
+                    }}
+                    className="text-xs text-soft hover:text-red-500 hover:underline transition-colors py-1 px-1.5 rounded inline-flex items-center gap-1.5 focus:outline-none"
+                    aria-label={t('auth.deleteAccount', 'Excluir conta')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 opacity-70" />
+                    <span>{t('auth.deleteAccount', 'Excluir conta')}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 space-y-3 fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-semibold text-text">
+                        {t('auth.deleteAccountConfirmTitle', 'Excluir conta permanentemente?')}
+                      </h4>
+                      <p className="text-xs text-soft leading-relaxed">
+                        {t(
+                          'auth.deleteAccountConfirmMessage',
+                          'Todos os seus hábitos, tarefas e histórico serão apagados definitivamente. Esta ação não pode ser desfeita.'
+                        )}
+                      </p>
+                      {deleteError && (
+                        <p className="text-xs text-red-500 font-medium">{deleteError}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="px-3 py-1.5 text-xs rounded-xl border border-surface bg-surface hover:bg-surface/80 text-text transition-colors font-medium disabled:opacity-50"
+                    >
+                      {t('auth.cancel', 'Cancelar')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={handleDeleteAccount}
+                      className="px-3 py-1.5 text-xs rounded-xl bg-red-600 hover:bg-red-700 text-white transition-colors font-medium flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>{t('auth.deletingAccount', 'Excluindo...')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>
+                            {t('auth.deleteAccountConfirmButton', 'Sim, excluir minha conta')}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>

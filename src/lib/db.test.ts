@@ -4,6 +4,7 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  deleteHouseholdData,
   toggleTaskCompletion,
   calculateNewStreak,
   refreshRecurringTasks,
@@ -114,5 +115,19 @@ describe('DynamoDB / DB Layer', () => {
     const target = refreshed.find((t) => t.id === task.id);
     expect(target?.isCompleted).toBe(false);
     expect(target?.nextAvailableAt).toBeUndefined();
+  });
+
+  it('deletes all household data', async () => {
+    const id = `test-house-${crypto.randomUUID()}`;
+    await createTask(id, {
+      title: 'Task to be wiped',
+      level: EffortLevel.LOW,
+      recurrenceUnit: 'none',
+    });
+
+    await deleteHouseholdData(id);
+    const data = await getHouseholdData(id);
+    expect(data.tasks).toHaveLength(0);
+    expect(data.profile.currentStreak).toBe(0);
   });
 });

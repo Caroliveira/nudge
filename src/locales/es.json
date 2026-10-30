@@ -238,6 +238,13 @@
     "accountAlreadyExists": "Este correo ya tiene una cuenta. ¡Inicia sesión en la pestaña al lado!",
     "account": "Cuenta",
     "loggedInAs": "Conectado como",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "deleteAccount": "Eliminar cuenta",
+    "deleteAccountConfirmTitle": "¿Eliminar cuenta permanentemente?",
+    "deleteAccountConfirmMessage": "Todos tus hábitos, tareas e historial se eliminarán definitivamente. Esta acción no se puede deshacer.",
+    "deleteAccountConfirmButton": "Sí, eliminar mi cuenta",
+    "deletingAccount": "Eliminando...",
+    "cancel": "Cancelar"
   }
 }
+

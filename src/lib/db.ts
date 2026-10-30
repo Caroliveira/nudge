@@ -234,6 +234,46 @@ export async function deleteTask(householdId: string, taskId: string): Promise<v
 }
 
 /**
+ * Deletes all data for a household (profile + tasks) from DynamoDB and in-memory store.
+ */
+export async function deleteHouseholdData(householdId: string): Promise<void> {
+  memoryStore.delete(householdId);
+
+  if (!isDynamoConfigured) {
+    return;
+  }
+
+  try {
+    const queryCommand = new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: 'PK = :pk',
+      ExpressionAttributeValues: {
+        ':pk': `HOUSEHOLD#${householdId}`,
+      },
+    });
+
+    const response = await docClient.send(queryCommand);
+    const items = response.Items || [];
+
+    for (const item of items) {
+      if (item.PK && item.SK) {
+        await docClient.send(
+          new DeleteCommand({
+            TableName: TABLE_NAME,
+            Key: {
+              PK: item.PK,
+              SK: item.SK,
+            },
+          })
+        );
+      }
+    }
+  } catch (error) {
+    console.warn('[DynamoDB] Error deleting household data, fallback to in-memory:', error);
+  }
+}
+
+/**
  * Marks a task as completed or incomplete and updates streaks.
  */
 export async function toggleTaskCompletion(

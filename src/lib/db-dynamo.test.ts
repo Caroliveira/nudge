@@ -16,6 +16,7 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  deleteHouseholdData,
   saveHouseholdProfile,
 } from './db';
 
@@ -161,4 +162,25 @@ describe('db.ts - DynamoDB configured branch', () => {
       saveHouseholdProfile('h1', { currentStreak: 3, bestStreak: 5 })
     ).resolves.not.toThrow();
   });
+
+  it('deletes household data by querying and deleting all items', async () => {
+    mockSend.mockResolvedValueOnce({
+      Items: [
+        { PK: 'HOUSEHOLD#h1', SK: 'PROFILE' },
+        { PK: 'HOUSEHOLD#h1', SK: 'TASK#t1' },
+      ],
+    }); // QueryCommand
+    mockSend.mockResolvedValueOnce({}); // DeleteCommand 1
+    mockSend.mockResolvedValueOnce({}); // DeleteCommand 2
+
+    await expect(deleteHouseholdData('h1')).resolves.not.toThrow();
+    expect(mockSend).toHaveBeenCalledTimes(3);
+  });
+
+  it('handles error gracefully when deleteHouseholdData DynamoDB fails', async () => {
+    mockSend.mockRejectedValueOnce(new Error('Query failed'));
+
+    await expect(deleteHouseholdData('h1')).resolves.not.toThrow();
+  });
 });
+

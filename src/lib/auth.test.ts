@@ -3,6 +3,8 @@ import {
   createMagicLinkToken,
   verifyMagicLinkToken,
   getOrCreateUser,
+  findUserByEmail,
+  deleteUserAccount,
 } from './auth';
 
 describe('auth.ts (In-memory fallback & core logic)', () => {
@@ -54,5 +56,20 @@ describe('auth.ts (In-memory fallback & core logic)', () => {
     expect(user2.householdId).toBe(user1.householdId);
     expect(user2.name).toBe('Alice');
   });
+
+  it('deletes a user account', async () => {
+    const email = `delete-${crypto.randomUUID()}@nudge.app`;
+    await getOrCreateUser(email, 'User to delete');
+
+    const foundBefore = await findUserByEmail(email);
+    expect(foundBefore).not.toBeNull();
+
+    const deleted = await deleteUserAccount(email);
+    expect(deleted).toBe(true);
+
+    const foundAfter = await findUserByEmail(email);
+    expect(foundAfter).toBeNull();
+  });
 });
+
 

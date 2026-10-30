@@ -7,6 +7,7 @@ import {
   recordTaskCompletionAction,
   refreshRecurringTasksAction,
   logoutAction,
+  deleteAccountAction,
   sendMagicLinkAction,
 } from './actions';
 import { EffortLevel } from '@/types';
@@ -96,6 +97,26 @@ describe('actions.ts', () => {
     const clearSpy = vi.spyOn(sessionModule, 'clearSessionCookie');
     await logoutAction();
     expect(clearSpy).toHaveBeenCalled();
+  });
+
+  it('handles deleteAccountAction for logged-in user', async () => {
+    const email = `delete-action-${Date.now()}@nudge.app`;
+    const { getOrCreateUser, findUserByEmail } = await import('@/lib/auth');
+    const user = await getOrCreateUser(email, 'Account To Delete');
+
+    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
+      householdId: user.householdId,
+      email: user.email,
+      name: user.name,
+    });
+    const clearSpy = vi.spyOn(sessionModule, 'clearSessionCookie');
+
+    const result = await deleteAccountAction();
+    expect(result.success).toBe(true);
+    expect(clearSpy).toHaveBeenCalled();
+
+    const found = await findUserByEmail(email);
+    expect(found).toBeNull();
   });
 
   it('validates email format in sendMagicLinkAction', async () => {

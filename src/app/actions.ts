@@ -2,11 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
-import { getHouseholdId, clearSessionCookie } from '@/lib/session';
+import { getHouseholdId, getSession, clearSessionCookie } from '@/lib/session';
 import {
   createTask,
   updateTask,
   deleteTask,
+  deleteHouseholdData,
   toggleTaskCompletion,
   refreshRecurringTasks,
   getHouseholdData,
@@ -14,7 +15,7 @@ import {
   saveHouseholdProfile,
   HouseholdProfile,
 } from '@/lib/db';
-import { createMagicLinkToken, findUserByEmail } from '@/lib/auth';
+import { createMagicLinkToken, findUserByEmail, deleteUserAccount } from '@/lib/auth';
 import { sendMagicLinkEmail } from '@/lib/email';
 import { Task } from '@/types';
 
@@ -164,3 +165,24 @@ export async function logoutAction(): Promise<void> {
   await clearSessionCookie();
   safeRevalidate('/');
 }
+
+export async function deleteAccountAction(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await getSession();
+    if (session?.email) {
+      const user = await findUserByEmail(session.email);
+      if (user?.householdId) {
+        await deleteHouseholdData(user.householdId);
+      }
+      await deleteUserAccount(session.email);
+    }
+    await clearSessionCookie();
+    safeRevalidate('/');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[deleteAccountAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_delete_account';
+    return { success: false, error: message };
+  }
+}
+

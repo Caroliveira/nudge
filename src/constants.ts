@@ -5,9 +5,10 @@ export const APP_ROUTES = {
   TASK: '/task',
   CATALOG: '/catalog',
   SETTINGS: '/settings',
+  LOGIN: '/login',
 } as const;
 
-export const STORAGE_KEY = 'nudge_tasks';
+export const SESSION_COOKIE_NAME = 'nudge_session';
 
 export const IMPORT_CONFIG = {
   MAX_FILE_SIZE_BYTES: 1024 * 1024, // 1MB

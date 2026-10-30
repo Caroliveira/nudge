@@ -6,6 +6,7 @@ import {
   updateTaskAction,
   deleteTaskAction,
   refreshRecurringTasksAction,
+  recordTaskCompletionAction,
 } from '@/app/actions';
 
 export const useStore = create<StoreState>()((set) => ({
@@ -35,7 +36,7 @@ export const useStore = create<StoreState>()((set) => ({
   setSelectedLevel: (selectedLevel) => set({ selectedLevel }),
   setBestStreak: (bestStreak) => set({ bestStreak }),
 
-  recordTaskCompletion: (completedAt = Date.now()) =>
+  recordTaskCompletion: (completedAt = Date.now()) => {
     set((state) => {
       const previousUpdate = state.streakLastUpdatedAt;
 
@@ -55,7 +56,22 @@ export const useStore = create<StoreState>()((set) => ({
         bestStreak: Math.max(state.bestStreak, currentStreak),
         streakLastUpdatedAt: completedAt,
       };
-    }),
+    });
+
+    if (typeof window !== 'undefined') {
+      recordTaskCompletionAction(completedAt)
+        .then((profile) => {
+          if (profile) {
+            set({
+              currentStreak: profile.currentStreak,
+              bestStreak: profile.bestStreak,
+              streakLastUpdatedAt: profile.streakLastUpdatedAt,
+            });
+          }
+        })
+        .catch((err) => console.error('Failed to persist streak to DynamoDB', err));
+    }
+  },
 
   addTask: (task) => {
     set((state) => ({

@@ -9,6 +9,10 @@ import {
   deleteTask,
   toggleTaskCompletion,
   refreshRecurringTasks,
+  getHouseholdData,
+  calculateNewStreak,
+  saveHouseholdProfile,
+  HouseholdProfile,
 } from '@/lib/db';
 import { createMagicLinkToken } from '@/lib/auth';
 import { sendMagicLinkEmail } from '@/lib/email';
@@ -20,6 +24,21 @@ function safeRevalidate(path: string) {
   } catch {
     // Graceful no-op outside Next.js request lifecycle
   }
+}
+
+export async function recordTaskCompletionAction(
+  completedAt = Date.now()
+): Promise<HouseholdProfile> {
+  const householdId = await getHouseholdId();
+  const { profile } = await getHouseholdData(householdId);
+  const updatedProfile = calculateNewStreak(profile, completedAt);
+  await saveHouseholdProfile(householdId, updatedProfile);
+
+  safeRevalidate('/');
+  safeRevalidate('/catalog');
+  safeRevalidate('/task');
+
+  return updatedProfile;
 }
 
 export async function createTaskAction(taskData: Omit<Task, 'id'>): Promise<Task> {

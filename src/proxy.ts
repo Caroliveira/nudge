@@ -14,9 +14,19 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/register') ||
     pathname.startsWith('/auth');
 
+  const host =
+    request.headers.get('x-forwarded-host') ||
+    request.headers.get('host') ||
+    request.nextUrl.host;
+  const proto =
+    request.headers.get('x-forwarded-proto') ||
+    request.nextUrl.protocol.replace(':', '') ||
+    'https';
+  const baseUrl = process.env.APP_URL || `${proto}://${host}`;
+
   // Unauthenticated user trying to access protected route -> redirect to /login
   if (!isAuthenticated && !isAuthRoute) {
-    const loginUrl = new URL(APP_ROUTES.LOGIN, request.url);
+    const loginUrl = new URL(APP_ROUTES.LOGIN, baseUrl);
     const response = NextResponse.redirect(loginUrl);
     if (sessionCookie) {
       response.cookies.delete(SESSION_COOKIE_NAME);
@@ -26,7 +36,7 @@ export async function proxy(request: NextRequest) {
 
   // Authenticated user trying to access /login or /register -> redirect to /
   if (isAuthenticated && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
-    const homeUrl = new URL(APP_ROUTES.HOME, request.url);
+    const homeUrl = new URL(APP_ROUTES.HOME, baseUrl);
     return NextResponse.redirect(homeUrl);
   }
 

@@ -30,6 +30,12 @@ const credentials =
     ? { accessKeyId, secretAccessKey }
     : undefined;
 
+if (process.env.NODE_ENV === 'production' && !credentials) {
+  console.error(
+    `[DynamoDB Init] Missing credentials in production! hasKeyId: ${Boolean(accessKeyId)}, hasSecret: ${Boolean(secretAccessKey)}, region: ${region}`,
+  );
+}
+
 const baseClient = new DynamoDBClient({
   region,
   ...(credentials ? { credentials } : {}),

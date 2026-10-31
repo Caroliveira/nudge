@@ -87,6 +87,7 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
           recurrenceUnit: item.recurrenceUnit as RecurrenceUnit,
           lastCompletedAt: item.lastCompletedAt,
           nextAvailableAt: item.nextAvailableAt,
+          createdAt: item.createdAt || Date.now(),
         });
       }
     }
@@ -111,14 +112,14 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
  */
 export async function createTask(
   householdId: string,
-  taskInput: Omit<Task, 'id'> & { id?: string },
+  taskInput: Omit<Task, 'id' | 'createdAt'> & { id?: string; createdAt?: number },
 ): Promise<Task> {
+  const now = Date.now();
   const task: Task = {
     ...taskInput,
     id: taskInput.id || crypto.randomUUID(),
+    createdAt: taskInput.createdAt || now,
   };
-
-  const now = Date.now();
 
   if (!isDynamoConfigured) {
     const mem = getMemoryHousehold(householdId);
@@ -141,7 +142,7 @@ export async function createTask(
         recurrenceUnit: task.recurrenceUnit,
         lastCompletedAt: task.lastCompletedAt,
         nextAvailableAt: task.nextAvailableAt,
-        createdAt: now,
+        createdAt: task.createdAt,
         updatedAt: now,
       },
     });
@@ -202,6 +203,7 @@ export async function updateTask(
         recurrenceUnit: updated.recurrenceUnit,
         lastCompletedAt: updated.lastCompletedAt,
         nextAvailableAt: updated.nextAvailableAt,
+        createdAt: updated.createdAt,
         updatedAt: now,
       },
     });

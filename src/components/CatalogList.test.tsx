@@ -29,6 +29,8 @@ describe('CatalogList', () => {
   const openFilters = () => {
     fireEvent.click(screen.getByLabelText(/Open filters|catalog\.openFilters/));
   };
+  const createTasks = (items: (Omit<Task, 'createdAt'> & { createdAt?: number })[]): Task[] =>
+    items.map((t) => ({ createdAt: 1000, ...t }));
 
   it('renders empty state when no tasks', () => {
     render(<CatalogList {...mockProps} />);
@@ -36,7 +38,7 @@ describe('CatalogList', () => {
   });
 
   it('renders list of tasks', () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Task 1',
@@ -51,7 +53,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'none',
       },
-    ];
+    ]);
     render(<CatalogList {...mockProps} tasks={tasks} />);
 
     expect(screen.getAllByTestId('task-item')).toHaveLength(2);
@@ -60,7 +62,7 @@ describe('CatalogList', () => {
   });
 
   it('passes actions to items', () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Task 1',
@@ -68,7 +70,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'none',
       },
-    ];
+    ]);
     render(<CatalogList {...mockProps} tasks={tasks} />);
 
     screen.getByText('Toggle').click();
@@ -82,7 +84,7 @@ describe('CatalogList', () => {
   });
 
   it('filters tasks by recurrence option', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Daily Task',
@@ -104,7 +106,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'none',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();
@@ -121,7 +123,7 @@ describe('CatalogList', () => {
   });
 
   it('matches search regardless of accents', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Ação diária',
@@ -136,7 +138,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'weeks',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     fireEvent.change(screen.getByPlaceholderText(/Search tasks|Buscar tarefas|catalog\.search/), {
@@ -150,7 +152,7 @@ describe('CatalogList', () => {
   });
 
   it('clears search when clicking the x button', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Ação diária',
@@ -165,7 +167,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'weeks',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     const searchInput = screen.getByPlaceholderText(/Search tasks|Buscar tarefas|catalog\.search/);
@@ -185,7 +187,7 @@ describe('CatalogList', () => {
   });
 
   it('always shows made today option', () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Task 1',
@@ -193,7 +195,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'none',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();
@@ -203,7 +205,7 @@ describe('CatalogList', () => {
   });
 
   it('filters tasks by available and done options', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Open Task',
@@ -218,7 +220,7 @@ describe('CatalogList', () => {
         isCompleted: true,
         recurrenceUnit: 'weeks',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();
@@ -241,7 +243,7 @@ describe('CatalogList', () => {
   });
 
   it('applies one filter from each group together', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'A Daily Open Low',
@@ -263,7 +265,7 @@ describe('CatalogList', () => {
         isCompleted: true,
         recurrenceUnit: 'days',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();
@@ -286,7 +288,7 @@ describe('CatalogList', () => {
   });
 
   it('shows selected filter count on the filter icon', () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Task 1',
@@ -294,7 +296,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'days',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     expect(screen.queryByTestId('selected-filter-count')).not.toBeInTheDocument();
@@ -311,7 +313,7 @@ describe('CatalogList', () => {
   });
 
   it('closes filter popover when clicking outside', () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Task 1',
@@ -319,7 +321,7 @@ describe('CatalogList', () => {
         isCompleted: false,
         recurrenceUnit: 'none',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();
@@ -330,7 +332,7 @@ describe('CatalogList', () => {
   });
 
   it('shows and applies clear all filters button', async () => {
-    const tasks: Task[] = [
+    const tasks: Task[] = createTasks([
       {
         id: '1',
         title: 'Open Task',
@@ -345,7 +347,7 @@ describe('CatalogList', () => {
         isCompleted: true,
         recurrenceUnit: 'weeks',
       },
-    ];
+    ]);
 
     render(<CatalogList {...mockProps} tasks={tasks} />);
     openFilters();

@@ -67,6 +67,7 @@ export const processImportedTasks = (
       recurrenceUnit: unit,
       lastCompletedAt: parseOptionalTimestamp(taskData.lastcompletedat),
       nextAvailableAt: parseOptionalTimestamp(taskData.nextavailableat),
+      createdAt: Date.now(),
     });
   });
 

@@ -15,9 +15,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith('/auth');
 
   const host =
-    request.headers.get('x-forwarded-host') ||
-    request.headers.get('host') ||
-    request.nextUrl.host;
+    request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host;
   const proto =
     request.headers.get('x-forwarded-proto') ||
     request.nextUrl.protocol.replace(':', '') ||

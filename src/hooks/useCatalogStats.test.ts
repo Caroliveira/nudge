@@ -25,6 +25,7 @@ describe('useCatalogStats', () => {
       lastCompletedAt: today.getTime(),
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
+      createdAt: today.getTime(),
     },
     {
       id: '2',
@@ -34,6 +35,7 @@ describe('useCatalogStats', () => {
       lastCompletedAt: yesterday.getTime(),
       recurrenceUnit: 'weeks',
       recurrenceInterval: 1,
+      createdAt: yesterday.getTime(),
     },
     {
       id: '3',
@@ -41,6 +43,7 @@ describe('useCatalogStats', () => {
       level: EffortLevel.HIGH,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: today.getTime(),
     },
     {
       id: '4',
@@ -48,6 +51,7 @@ describe('useCatalogStats', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: today.getTime(),
     },
   ];
 
@@ -113,6 +117,7 @@ describe('useCatalogStats', () => {
         level: EffortLevel.LOW,
         isCompleted: true,
         lastCompletedAt: new Date('2023-12-30T12:00:00Z').getTime(),
+        createdAt: new Date('2023-12-30T12:00:00Z').getTime(),
       },
     ];
 

@@ -60,6 +60,7 @@ describe('TaskForm', () => {
           level: EffortLevel.MEDIUM,
           recurrenceUnit: 'none',
           recurrenceInterval: undefined,
+          createdAt: expect.any(Number),
         });
       },
       { timeout: 3000 },

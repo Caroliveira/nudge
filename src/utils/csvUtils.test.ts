@@ -27,6 +27,7 @@ describe('csvUtils', () => {
         title: 'Existing Task',
         level: EffortLevel.LOW,
         recurrenceUnit: 'none',
+        createdAt: Date.now(),
       },
     ];
 

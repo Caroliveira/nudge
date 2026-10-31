@@ -58,6 +58,7 @@ describe('TaskCatalogItem', () => {
     level: EffortLevel.LOW,
     isCompleted: false,
     recurrenceUnit: 'none',
+    createdAt: Date.now(),
   };
 
   const mockOnToggle = vi.fn();
@@ -135,5 +136,67 @@ describe('TaskCatalogItem', () => {
     await user.keyboard('{Delete}');
 
     expect(mockOnDelete).toHaveBeenCalledWith('1');
+  });
+
+  it('applies subtle orange styling for tasks overdue by double recurrence', () => {
+    const overdueDoubleTask: Task = {
+      ...mockTask,
+      recurrenceUnit: 'days',
+      recurrenceInterval: 1,
+      // 2 days ago relative to now
+      createdAt: Date.now() - 2 * 24 * 60 * 60 * 1000 - 1000,
+    };
+
+    const { container } = render(
+      <TaskCatalogItem task={overdueDoubleTask} onToggle={mockOnToggle} onDelete={mockOnDelete} />,
+    );
+
+    const card = container.querySelector('[data-overdue="double"]');
+    expect(card).toBeInTheDocument();
+    expect(card?.className).toContain('bg-orange/10');
+    expect(card?.className).toContain('border-orange/30');
+  });
+
+  it('applies subtle red styling for tasks overdue by triple recurrence or more', () => {
+    const overdueTripleTask: Task = {
+      ...mockTask,
+      recurrenceUnit: 'days',
+      recurrenceInterval: 1,
+      // 4 days ago relative to now
+      createdAt: Date.now() - 4 * 24 * 60 * 60 * 1000 - 1000,
+    };
+
+    const { container } = render(
+      <TaskCatalogItem task={overdueTripleTask} onToggle={mockOnToggle} onDelete={mockOnDelete} />,
+    );
+
+    const card = container.querySelector('[data-overdue="triple"]');
+    expect(card).toBeInTheDocument();
+    expect(card?.className).toContain('bg-red/10');
+    expect(card?.className).toContain('border-red/30');
+  });
+
+  it('does not apply overdue styling if task is completed', () => {
+    const completedOverdueTask: Task = {
+      ...mockTask,
+      isCompleted: true,
+      recurrenceUnit: 'days',
+      recurrenceInterval: 1,
+      lastCompletedAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
+    };
+
+    const { container } = render(
+      <TaskCatalogItem
+        task={completedOverdueTask}
+        onToggle={mockOnToggle}
+        onDelete={mockOnDelete}
+      />,
+    );
+
+    const card = container.querySelector('[data-overdue="none"]');
+    expect(card).toBeInTheDocument();
+    expect(card?.className).toContain('bg-warm');
+    expect(card?.className).not.toContain('bg-orange/10');
+    expect(card?.className).not.toContain('bg-red/10');
   });
 });

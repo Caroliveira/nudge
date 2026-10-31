@@ -141,6 +141,7 @@ describe('useStore', () => {
       recurrenceInterval: 1,
       lastCompletedAt: pastDate,
       nextAvailableAt: pastDate,
+      createdAt: pastDate,
     };
 
     useStore.setState({ tasks: [task] });
@@ -163,6 +164,7 @@ describe('useStore', () => {
       recurrenceInterval: 1,
       lastCompletedAt: Date.now(),
       nextAvailableAt: futureDate,
+      createdAt: Date.now(),
     };
 
     useStore.setState({ tasks: [task] });

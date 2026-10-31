@@ -11,6 +11,7 @@ describe('useCatalogFilter', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '2',
@@ -18,6 +19,7 @@ describe('useCatalogFilter', () => {
       level: EffortLevel.MEDIUM,
       isCompleted: true,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '3',
@@ -26,6 +28,7 @@ describe('useCatalogFilter', () => {
       isCompleted: false,
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
+      createdAt: Date.now(),
     },
     {
       id: '4',
@@ -34,6 +37,7 @@ describe('useCatalogFilter', () => {
       isCompleted: true,
       recurrenceUnit: 'weeks',
       recurrenceInterval: 1,
+      createdAt: Date.now(),
     },
     {
       id: '5',
@@ -41,6 +45,7 @@ describe('useCatalogFilter', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
   ];
 

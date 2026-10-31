@@ -6,6 +6,7 @@ import { MotionValue } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Task } from '../types';
 import { SWIPE_ACTIONS } from '../constants';
+import { getTaskOverdueStatus } from '../utils/taskUtils';
 import SwipeableItem from './SwipeableItem';
 import { SwipeAction } from './TaskCatalogActions';
 
@@ -18,6 +19,15 @@ interface TaskCatalogItemProps {
 
 const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDelete, onEdit }) => {
   const { t } = useTranslation();
+  const overdueStatus = getTaskOverdueStatus(task);
+
+  const cardStyle = task.isCompleted
+    ? 'bg-warm border-surface'
+    : overdueStatus === 'triple'
+      ? 'bg-red/10 border-red/30 shadow-sm'
+      : overdueStatus === 'double'
+        ? 'bg-orange/10 border-orange/30 shadow-sm'
+        : 'bg-surface border-transparent shadow-sm';
 
   const deleteAction = {
     ...SWIPE_ACTIONS.DELETE,
@@ -55,9 +65,8 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
       renderLeftBackground={onEdit ? renderEditAction : undefined}
     >
       <div
-        className={`flex items-center gap-4 p-4 rounded-xl transition-transform duration-200 ease-out border ${
-          task.isCompleted ? 'bg-warm border-surface' : 'bg-surface border-transparent shadow-sm'
-        }`}
+        data-overdue={overdueStatus}
+        className={`flex items-center gap-4 p-4 rounded-xl transition-transform duration-200 ease-out border ${cardStyle}`}
       >
         <button
           type="button"
@@ -83,7 +92,17 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
           <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-tighter text-soft mt-1">
             <span className="font-bold">{t(`effort.${task.level.toLowerCase()}`)}</span>
             {task.recurrenceUnit && task.recurrenceUnit !== 'none' && (
-              <span className="px-1.5 py-0.5 bg-warm rounded italic">
+              <span
+                className={`px-1.5 py-0.5 rounded italic ${
+                  task.isCompleted
+                    ? 'bg-warm'
+                    : overdueStatus === 'triple'
+                      ? 'bg-warm/80 text-red font-medium'
+                      : overdueStatus === 'double'
+                        ? 'bg-warm/80 text-orange font-medium'
+                        : 'bg-warm'
+                }`}
+              >
                 {t(`recurrence.every.${task.recurrenceUnit}`, { count: task.recurrenceInterval })}
               </span>
             )}

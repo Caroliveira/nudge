@@ -87,11 +87,15 @@ export const useStore = create<StoreState>()((set) => ({
   },
 
   addTask: (task) => {
+    const taskWithCreated = {
+      ...task,
+      createdAt: task.createdAt ?? Date.now(),
+    };
     set((state) => ({
-      tasks: [task, ...state.tasks],
+      tasks: [taskWithCreated, ...state.tasks],
     }));
     if (typeof window !== 'undefined') {
-      createTaskAction(task).catch((err) =>
+      createTaskAction(taskWithCreated).catch((err) =>
         console.error('Failed to persist task to DynamoDB', err),
       );
     }

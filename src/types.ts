@@ -16,6 +16,7 @@ export interface Task {
   recurrenceUnit?: RecurrenceUnit;
   lastCompletedAt?: number;
   nextAvailableAt?: number;
+  createdAt: number;
 }
 
 export interface StoreState {

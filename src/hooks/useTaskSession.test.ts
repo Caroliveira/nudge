@@ -18,6 +18,7 @@ describe('useTaskSession', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '2',
@@ -25,6 +26,7 @@ describe('useTaskSession', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '3',
@@ -32,6 +34,7 @@ describe('useTaskSession', () => {
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
   ];
 

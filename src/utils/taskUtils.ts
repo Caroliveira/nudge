@@ -54,3 +54,36 @@ export const getTasksForLevel = (
 ): Task[] => {
   return tasks.filter((t) => t.level === level && isTaskAvailable(t, now));
 };
+
+export type OverdueStatus = 'none' | 'double' | 'triple';
+
+export function getTaskOverdueStatus(task: Task, now: Date = new Date()): OverdueStatus {
+  if (task.isCompleted || !task.recurrenceUnit || task.recurrenceUnit === 'none') {
+    return 'none';
+  }
+
+  const baseTimestamp = task.lastCompletedAt ?? task.createdAt;
+  if (!baseTimestamp) {
+    return 'none';
+  }
+
+  const baseDate = startOfDay(new Date(baseTimestamp));
+  const interval = task.recurrenceInterval ?? 1;
+  const calculator = recurrenceMap[task.recurrenceUnit as RecurringUnit];
+  if (!calculator) {
+    return 'none';
+  }
+
+  const doubleDate = startOfDay(calculator(baseDate, interval * 2));
+  const tripleDate = startOfDay(calculator(baseDate, interval * 3));
+  const nowDate = startOfDay(now);
+
+  if (nowDate.getTime() >= tripleDate.getTime()) {
+    return 'triple';
+  }
+  if (nowDate.getTime() >= doubleDate.getTime()) {
+    return 'double';
+  }
+
+  return 'none';
+}

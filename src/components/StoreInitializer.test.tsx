@@ -12,6 +12,7 @@ const sampleTasks: Task[] = [
     level: EffortLevel.MEDIUM,
     isCompleted: false,
     recurrenceUnit: 'none',
+    createdAt: Date.now(),
   },
 ];
 
@@ -63,6 +64,7 @@ describe('StoreInitializer', () => {
         level: EffortLevel.LOW,
         isCompleted: true,
         recurrenceUnit: 'days',
+        createdAt: Date.now(),
       },
     ];
 

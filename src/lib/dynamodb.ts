@@ -1,13 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-const accessKeyId =
-  process.env.APP_AWS_ACCESS_KEY_ID ||
-  process.env.AWS_ACCESS_KEY_ID;
+const accessKeyId = process.env.APP_AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
 
-const secretAccessKey =
-  process.env.APP_AWS_SECRET_ACCESS_KEY ||
-  process.env.AWS_SECRET_ACCESS_KEY;
+const secretAccessKey = process.env.APP_AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 
 const region =
   process.env.APP_AWS_REGION ||
@@ -22,13 +18,9 @@ export const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'nudge_tasks';
 // DynamoDB is always activated in production and development.
 // In test environments without AWS, fallback prevents credential provider timeouts.
 export const isDynamoConfigured =
-  process.env.NODE_ENV !== 'test' ||
-  Boolean(accessKeyId || process.env.DYNAMODB_ENDPOINT);
+  process.env.NODE_ENV !== 'test' || Boolean(accessKeyId || process.env.DYNAMODB_ENDPOINT);
 
-const credentials =
-  accessKeyId && secretAccessKey
-    ? { accessKeyId, secretAccessKey }
-    : undefined;
+const credentials = accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
 
 if (process.env.NODE_ENV === 'production' && !credentials) {
   console.error(

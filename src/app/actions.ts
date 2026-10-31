@@ -47,7 +47,9 @@ export async function recordTaskCompletionAction(
   return updatedProfile;
 }
 
-export async function createTaskAction(taskData: Omit<Task, 'id'>): Promise<Task> {
+export async function createTaskAction(
+  taskData: Omit<Task, 'id' | 'createdAt'> & { createdAt?: number },
+): Promise<Task> {
   const householdId = await getHouseholdId();
   const task = await createTask(householdId, taskData);
 

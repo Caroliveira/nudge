@@ -20,7 +20,7 @@ const CatalogTasks: React.FC = () => {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const handleAddTask = (taskData: Omit<Task, 'id'>) => {
-    addTask({ ...taskData, id: crypto.randomUUID() });
+    addTask({ ...taskData, id: crypto.randomUUID(), createdAt: Date.now() });
     setIsAdding(false);
   };
 

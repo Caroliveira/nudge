@@ -36,6 +36,7 @@ const CsvExport: React.FC = () => {
         isCompleted: task.isCompleted ?? false,
         lastCompletedAt: task.lastCompletedAt ?? '',
         nextAvailableAt: task.nextAvailableAt ?? '',
+        createdAt: task.createdAt,
       }));
 
       const csvContent = Papa.unparse(exportData);

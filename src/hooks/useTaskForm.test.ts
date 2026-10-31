@@ -96,6 +96,7 @@ describe('useTaskForm', () => {
       level: EffortLevel.MEDIUM,
       recurrenceUnit: 'none',
       recurrenceInterval: undefined,
+      createdAt: expect.any(Number),
     });
 
     // Form should be reset

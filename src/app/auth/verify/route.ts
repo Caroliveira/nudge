@@ -7,9 +7,7 @@ function getBaseUrl(request: NextRequest): string {
     return process.env.APP_URL;
   }
   const host =
-    request.headers.get('x-forwarded-host') ||
-    request.headers.get('host') ||
-    request.nextUrl.host;
+    request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host;
   const proto =
     request.headers.get('x-forwarded-proto') ||
     request.nextUrl.protocol.replace(':', '') ||

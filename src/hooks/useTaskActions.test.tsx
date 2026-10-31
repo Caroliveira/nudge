@@ -19,18 +19,21 @@ describe('useTaskActions', () => {
       title: 'Task 1',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '2',
       title: 'Task 2',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
     {
       id: '3',
       title: 'Task 3',
       level: EffortLevel.HIGH,
       recurrenceUnit: 'none',
+      createdAt: Date.now(),
     },
   ];
 

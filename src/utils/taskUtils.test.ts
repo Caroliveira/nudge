@@ -6,6 +6,7 @@ import {
   pickRandomTask,
   isOneTimeTask,
   getTasksForLevel,
+  getTaskOverdueStatus,
 } from './taskUtils';
 import { Task, EffortLevel } from '../types';
 import { addDays, addWeeks, addMonths, addYears, startOfDay } from 'date-fns';
@@ -17,6 +18,7 @@ describe('taskUtils', () => {
     level: EffortLevel.LOW,
     recurrenceUnit: 'days',
     recurrenceInterval: 1,
+    createdAt: new Date('2026-10-01T00:00:00').getTime(),
   };
 
   describe('getNextAvailableDate', () => {
@@ -186,6 +188,127 @@ describe('taskUtils', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual(taskLow);
+    });
+  });
+
+  describe('getTaskOverdueStatus', () => {
+    const baseDate = new Date('2026-10-01T12:00:00');
+
+    it('returns "none" if task is completed', () => {
+      const task: Task = {
+        ...mockTask,
+        isCompleted: true,
+        lastCompletedAt: new Date('2026-01-01').getTime(),
+      };
+      expect(getTaskOverdueStatus(task, baseDate)).toBe('none');
+    });
+
+    it('returns "none" if task is a one-time task (recurrenceUnit is none)', () => {
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'none',
+        createdAt: new Date('2026-01-01').getTime(),
+      };
+      expect(getTaskOverdueStatus(task, baseDate)).toBe('none');
+    });
+
+    it('returns "none" if task has no lastCompletedAt and no createdAt', () => {
+      const task = {
+        ...mockTask,
+        lastCompletedAt: undefined,
+        createdAt: undefined as unknown as number,
+      };
+      expect(getTaskOverdueStatus(task, baseDate)).toBe('none');
+    });
+
+    it('returns "none" if elapsed time is less than 2x recurrence', () => {
+      // 1-day recurrence, created on 2026-10-01, checking on 2026-10-02 (1 day later = due date)
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'days',
+        recurrenceInterval: 1,
+        createdAt: baseDate.getTime(),
+      };
+      const checkDate = new Date('2026-10-02T10:00:00');
+      expect(getTaskOverdueStatus(task, checkDate)).toBe('none');
+    });
+
+    it('returns "double" if elapsed time is >= 2x recurrence but < 3x', () => {
+      // 1-day recurrence, created on 2026-10-01, checking on 2026-10-03 (2 days later = double)
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'days',
+        recurrenceInterval: 1,
+        createdAt: baseDate.getTime(),
+      };
+      const checkDate = new Date('2026-10-03T10:00:00');
+      expect(getTaskOverdueStatus(task, checkDate)).toBe('double');
+    });
+
+    it('returns "triple" if elapsed time is >= 3x recurrence', () => {
+      // 1-day recurrence, created on 2026-10-01, checking on 2026-10-04 (3 days later = triple)
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'days',
+        recurrenceInterval: 1,
+        createdAt: baseDate.getTime(),
+      };
+      const checkDate = new Date('2026-10-04T10:00:00');
+      expect(getTaskOverdueStatus(task, checkDate)).toBe('triple');
+
+      // Far overdue (e.g. 10 days) should still be triple
+      const farDate = new Date('2026-10-11T10:00:00');
+      expect(getTaskOverdueStatus(task, farDate)).toBe('triple');
+    });
+
+    it('prioritizes lastCompletedAt over createdAt', () => {
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'days',
+        recurrenceInterval: 1,
+        createdAt: new Date('2026-09-01T00:00:00').getTime(), // 1 month ago
+        lastCompletedAt: new Date('2026-10-01T10:00:00').getTime(), // completed yesterday relative to check
+      };
+      const checkDate = new Date('2026-10-02T12:00:00');
+      // Relative to lastCompletedAt (1 day ago), it's not overdue 2x yet
+      expect(getTaskOverdueStatus(task, checkDate)).toBe('none');
+    });
+
+    it('correctly handles weekly recurrence with interval > 1', () => {
+      // Bi-weekly (every 2 weeks)
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'weeks',
+        recurrenceInterval: 2,
+        lastCompletedAt: new Date('2026-10-01T00:00:00').getTime(),
+      };
+
+      // 2 weeks later (due date): none
+      expect(getTaskOverdueStatus(task, new Date('2026-10-15T00:00:00'))).toBe('none');
+
+      // 4 weeks later (2x = double): double
+      expect(getTaskOverdueStatus(task, new Date('2026-10-29T00:00:00'))).toBe('double');
+
+      // 6 weeks later (3x = triple): triple
+      expect(getTaskOverdueStatus(task, new Date('2026-11-12T00:00:00'))).toBe('triple');
+    });
+
+    it('correctly handles monthly recurrence', () => {
+      const task: Task = {
+        ...mockTask,
+        recurrenceUnit: 'months',
+        recurrenceInterval: 1,
+        lastCompletedAt: new Date('2026-01-01T00:00:00').getTime(),
+      };
+
+      // 1 month later (due date): none
+      expect(getTaskOverdueStatus(task, new Date('2026-02-01T00:00:00'))).toBe('none');
+
+      // 2 months later (double): double
+      expect(getTaskOverdueStatus(task, new Date('2026-03-01T00:00:00'))).toBe('double');
+
+      // 3 months later (triple): triple
+      expect(getTaskOverdueStatus(task, new Date('2026-04-01T00:00:00'))).toBe('triple');
     });
   });
 });

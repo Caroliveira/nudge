@@ -72,6 +72,7 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
             ? Number(recurrenceInterval)
             : undefined,
         recurrenceUnit,
+        createdAt: initialValues?.createdAt ?? Date.now(),
       });
 
       // Reset form

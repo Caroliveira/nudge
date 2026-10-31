@@ -78,7 +78,10 @@ export async function createMagicLinkToken(email: string, name?: string): Promis
     await docClient.send(command);
     return token;
   } catch (error) {
-    console.warn('[DynamoDB] Error saving auth token, fallback to memory:', error);
+    console.error('[DynamoDB] Error saving auth token:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     memoryTokens.set(token, authToken);
     return token;
   }
@@ -123,7 +126,10 @@ export async function verifyMagicLinkToken(token: string): Promise<VerifiedToken
 
     return { email: item.email, name: item.name };
   } catch (error) {
-    console.warn('[DynamoDB] Error verifying token, fallback to memory:', error);
+    console.error('[DynamoDB] Error verifying token:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const item = memoryTokens.get(token);
     if (!item) return null;
     memoryTokens.delete(token);
@@ -163,7 +169,10 @@ export async function findUserByEmail(email: string): Promise<UserAccount | null
     }
     return null;
   } catch (error) {
-    console.warn('[DynamoDB] Error finding user, fallback to memory:', error);
+    console.error('[DynamoDB] Error finding user:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const user = memoryUsers.get(normalizedEmail);
     return user || null;
   }
@@ -200,7 +209,10 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
           });
           await docClient.send(putCommand);
         } catch (error) {
-          console.warn('[DynamoDB] Error updating user name:', error);
+          console.error('[DynamoDB] Error updating user name:', error);
+          if (process.env.NODE_ENV === 'production') {
+            throw error;
+          }
         }
       }
     }
@@ -238,7 +250,10 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
     await docClient.send(putCommand);
     return newUser;
   } catch (error) {
-    console.warn('[DynamoDB] Error creating user, fallback to memory:', error);
+    console.error('[DynamoDB] Error creating user:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     memoryUsers.set(normalizedEmail, newUser);
     return newUser;
   }
@@ -282,7 +297,10 @@ export async function updateUserName(email: string, name: string): Promise<UserA
     await docClient.send(putCommand);
     return existing;
   } catch (error) {
-    console.warn('[DynamoDB] Error updating user name, fallback to memory:', error);
+    console.error('[DynamoDB] Error updating user name:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     memoryUsers.set(normalizedEmail, existing);
     return existing;
   }
@@ -312,7 +330,10 @@ export async function deleteUserAccount(email: string): Promise<boolean> {
     await docClient.send(command);
     return true;
   } catch (error) {
-    console.warn('[DynamoDB] Error deleting user account, fallback to memory:', error);
+    console.error('[DynamoDB] Error deleting user account:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     return true;
   }
 }

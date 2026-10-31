@@ -93,7 +93,10 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
 
     return { householdId, profile, tasks };
   } catch (error) {
-    console.warn('[DynamoDB] Fallback to in-memory store:', error);
+    console.error('[DynamoDB] Error fetching household data:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const mem = getMemoryHousehold(householdId);
     return {
       householdId,
@@ -146,7 +149,10 @@ export async function createTask(
     await docClient.send(command);
     return task;
   } catch (error) {
-    console.warn('[DynamoDB] Error saving task, fallback to in-memory:', error);
+    console.error('[DynamoDB] Error saving task:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const mem = getMemoryHousehold(householdId);
     mem.tasks.set(task.id, task);
     return task;
@@ -203,7 +209,10 @@ export async function updateTask(
     await docClient.send(command);
     return updated;
   } catch (error) {
-    console.warn('[DynamoDB] Error updating task, fallback to in-memory:', error);
+    console.error('[DynamoDB] Error updating task:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const mem = getMemoryHousehold(householdId);
     mem.tasks.set(taskId, updated);
     return updated;
@@ -231,7 +240,10 @@ export async function deleteTask(householdId: string, taskId: string): Promise<v
 
     await docClient.send(command);
   } catch (error) {
-    console.warn('[DynamoDB] Error deleting task, fallback to in-memory:', error);
+    console.error('[DynamoDB] Error deleting task:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const mem = getMemoryHousehold(householdId);
     mem.tasks.delete(taskId);
   }
@@ -273,7 +285,10 @@ export async function deleteHouseholdData(householdId: string): Promise<void> {
       }
     }
   } catch (error) {
-    console.warn('[DynamoDB] Error deleting household data, fallback to in-memory:', error);
+    console.error('[DynamoDB] Error deleting household data:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
   }
 }
 
@@ -363,7 +378,10 @@ export async function saveHouseholdProfile(
 
     await docClient.send(command);
   } catch (error) {
-    console.warn('[DynamoDB] Error saving profile, fallback to in-memory:', error);
+    console.error('[DynamoDB] Error saving profile:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     const mem = getMemoryHousehold(householdId);
     mem.profile = { ...profile };
   }

@@ -6,12 +6,11 @@ const endpoint = process.env.DYNAMODB_ENDPOINT;
 
 export const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'nudge_tasks';
 
-// Check if AWS credentials or custom endpoint are provided
-export const isDynamoConfigured = Boolean(
-  (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) ||
-  process.env.DYNAMODB_ENDPOINT ||
-  process.env.AWS_PROFILE,
-);
+// DynamoDB is always activated in production and development.
+// In test environments without AWS, fallback prevents credential provider timeouts.
+export const isDynamoConfigured =
+  process.env.NODE_ENV !== 'test' ||
+  Boolean(process.env.AWS_ACCESS_KEY_ID || process.env.DYNAMODB_ENDPOINT);
 
 const baseClient = new DynamoDBClient({
   region,

@@ -50,8 +50,9 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
-  const householdId = session?.householdId || 'default-household';
-  const { profile, tasks } = await getHouseholdData(householdId);
+  const { profile, tasks } = session?.householdId
+    ? await getHouseholdData(session.householdId)
+    : { profile: { currentStreak: 0, bestStreak: 0 }, tasks: [] };
 
   return (
     <html lang="en" className={`${inter.variable} ${lora.variable}`}>

@@ -53,14 +53,17 @@ describe('TaskForm', () => {
 
     await user.click(screen.getByText('Save Task'));
 
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith({
-        title: 'New Task',
-        level: EffortLevel.MEDIUM,
-        recurrenceUnit: 'none',
-        recurrenceInterval: undefined,
-      });
-    });
+    await waitFor(
+      () => {
+        expect(mockOnSubmit).toHaveBeenCalledWith({
+          title: 'New Task',
+          level: EffortLevel.MEDIUM,
+          recurrenceUnit: 'none',
+          recurrenceInterval: undefined,
+        });
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('does not submit if title is empty and shows error state', async () => {

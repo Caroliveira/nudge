@@ -218,39 +218,6 @@ const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDele
         </div>
       </div>
 
-      {places.length > 0 && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-1 px-1">
-          <button
-            type="button"
-            onClick={() => setSelectedPlaceFilter(null)}
-            className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
-              !selectedPlaceFilter
-                ? 'bg-accent text-warm shadow-sm'
-                : 'bg-surface text-soft hover:text-text hover:bg-surface/80 border border-surface'
-            }`}
-          >
-            {t('catalog.allPlaces', 'Todos')}
-          </button>
-          {places.map((place) => {
-            const isSelected = selectedPlaceFilter?.toLowerCase() === place.toLowerCase();
-            return (
-              <button
-                key={place}
-                type="button"
-                onClick={() => setSelectedPlaceFilter(isSelected ? null : place)}
-                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
-                  isSelected
-                    ? 'bg-accent text-warm shadow-sm'
-                    : 'bg-surface text-soft hover:text-text hover:bg-surface/80 border border-surface'
-                }`}
-              >
-                {place}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       <ul className="space-y-3 pb-8 relative mt-2">
         <AnimatePresence initial={false} mode="popLayout">
           {filteredTasks.length === 0 ? (

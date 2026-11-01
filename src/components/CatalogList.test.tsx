@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CatalogList from './CatalogList';
 import { Task, EffortLevel } from '../types';
+import { useStore } from '../store/useStore';
 
 vi.mock('./TaskCatalogItem', () => ({
   default: ({ task, onToggle, onDelete, onEdit }: any) => (
@@ -372,6 +373,48 @@ describe('CatalogList', () => {
       expect(
         screen.queryByText(/Clear all filters|catalog\.clearAllFilters/),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  it('filters tasks by place option in filter menu', async () => {
+    useStore.setState({ places: ['Cozinha', 'Quarto'], selectedPlaceFilter: null });
+    const tasks: Task[] = createTasks([
+      {
+        id: '1',
+        title: 'Lavar Louça',
+        level: EffortLevel.LOW,
+        isCompleted: false,
+        place: 'Cozinha',
+      },
+      {
+        id: '2',
+        title: 'Arrumar Cama',
+        level: EffortLevel.LOW,
+        isCompleted: false,
+        place: 'Quarto',
+      },
+    ]);
+
+    render(<CatalogList {...mockProps} tasks={tasks} />);
+    expect(screen.getByText('Lavar Louça')).toBeInTheDocument();
+    expect(screen.getByText('Arrumar Cama')).toBeInTheDocument();
+
+    openFilters();
+    fireEvent.change(screen.getByLabelText(/Place|Lugar|catalog\.filterPlace/), {
+      target: { value: 'Cozinha' },
+    });
+
+    expect(screen.getByText('Lavar Louça')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Arrumar Cama')).not.toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/Place|Lugar|catalog\.filterPlace/), {
+      target: { value: 'ALL' },
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Lavar Louça')).toBeInTheDocument();
+      expect(screen.getByText('Arrumar Cama')).toBeInTheDocument();
     });
   });
 });

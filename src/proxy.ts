@@ -12,6 +12,7 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute =
     pathname.startsWith('/login') ||
     pathname.startsWith('/register') ||
+    pathname.startsWith('/reset-password') ||
     pathname.startsWith('/auth');
 
   const host =

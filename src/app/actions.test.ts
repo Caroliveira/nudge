@@ -8,14 +8,17 @@ import {
   refreshRecurringTasksAction,
   logoutAction,
   deleteAccountAction,
-  sendMagicLinkAction,
+  loginAction,
+  registerAction,
+  forgotPasswordAction,
+  resetPasswordAction,
   updateUserNameAction,
 } from './actions';
 import { EffortLevel } from '@/types';
 import * as sessionModule from '@/lib/session';
 
 vi.mock('@/lib/email', () => ({
-  sendMagicLinkEmail: vi.fn().mockResolvedValue({ success: true }),
+  sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 describe('actions.ts', () => {
@@ -102,13 +105,13 @@ describe('actions.ts', () => {
 
   it('handles deleteAccountAction for logged-in user', async () => {
     const email = `delete-action-${Date.now()}@nudge.app`;
-    const { getOrCreateUser, findUserByEmail } = await import('@/lib/auth');
-    const user = await getOrCreateUser(email, 'Account To Delete');
+    const { registerUser, findUserByEmail } = await import('@/lib/auth');
+    const regResult = await registerUser(email, 'password123', 'Account To Delete');
 
     vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
-      householdId: user.householdId,
-      email: user.email,
-      name: user.name,
+      householdId: regResult.user!.householdId,
+      email: regResult.user!.email,
+      name: regResult.user!.name,
     });
     const clearSpy = vi.spyOn(sessionModule, 'clearSessionCookie');
 
@@ -120,85 +123,120 @@ describe('actions.ts', () => {
     expect(found).toBeNull();
   });
 
-  it('validates email format in sendMagicLinkAction', async () => {
-    const invalidResult = await sendMagicLinkAction('not-an-email');
-    expect(invalidResult.success).toBe(false);
-    expect(invalidResult.error).toBe('invalid_email');
-  });
+  describe('Password Auth Actions', () => {
+    it('registers a new user and sets session cookie', async () => {
+      const email = `register-${Date.now()}@nudge.app`;
+      const setSessionSpy = vi.spyOn(sessionModule, 'setSessionCookie');
 
-  it('validates name for registration mode in sendMagicLinkAction', async () => {
-    const invalidNameResult = await sendMagicLinkAction('valid@nudge.app', {
-      mode: 'register',
-      name: 'a',
-    });
-    expect(invalidNameResult.success).toBe(false);
-    expect(invalidNameResult.error).toBe('invalid_name');
-  });
+      const result = await registerAction(email, 'password123', 'Alice');
+      expect(result.success).toBe(true);
+      expect(setSessionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email,
+          name: 'Alice',
+        }),
+      );
 
-  it('handles registration flow and prevents duplicate registration', async () => {
-    const email = `reg-${Date.now()}@nudge.app`;
-    const regResult = await sendMagicLinkAction(email, {
-      mode: 'register',
-      name: 'New User',
-    });
-    expect(regResult.success).toBe(true);
-
-    // Simulate user creation (as done after token verification)
-    const { getOrCreateUser } = await import('@/lib/auth');
-    await getOrCreateUser(email, 'New User');
-
-    // Trying to register again should return account_already_exists
-    const duplicateReg = await sendMagicLinkAction(email, {
-      mode: 'register',
-      name: 'New User',
-    });
-    expect(duplicateReg.success).toBe(false);
-    expect(duplicateReg.error).toBe('account_already_exists');
-
-    // Login for existing user should succeed
-    const loginResult = await sendMagicLinkAction(email, { mode: 'login' });
-    expect(loginResult.success).toBe(true);
-  });
-
-  it('returns account_not_found when logging in with unregistered email', async () => {
-    const result = await sendMagicLinkAction('unregistered@nudge.app', { mode: 'login' });
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('account_not_found');
-  });
-
-  it('updates user name via updateUserNameAction', async () => {
-    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
-      email: 'active-user@nudge.app',
-      name: 'Initial Name',
-      householdId: 'hh_active',
-    });
-    vi.spyOn(sessionModule, 'setSessionCookie').mockResolvedValueOnce();
-
-    const { getOrCreateUser } = await import('@/lib/auth');
-    await getOrCreateUser('active-user@nudge.app', 'Initial Name');
-
-    const result = await updateUserNameAction('Updated Name');
-    expect(result.success).toBe(true);
-    expect(result.name).toBe('Updated Name');
-  });
-
-  it('validates name length in updateUserNameAction', async () => {
-    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
-      email: 'active-user@nudge.app',
-      name: 'Initial Name',
-      householdId: 'hh_active',
+      // Duplicate registration fails
+      const duplicate = await registerAction(email, 'anotherpass123', 'Bob');
+      expect(duplicate.success).toBe(false);
+      expect(duplicate.error).toBe('account_already_exists');
     });
 
-    const result = await updateUserNameAction('A');
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('invalid_name');
+    it('logs in user with correct credentials and sets session cookie', async () => {
+      const email = `login-${Date.now()}@nudge.app`;
+      const { registerUser } = await import('@/lib/auth');
+      await registerUser(email, 'correctPassword', 'User Login');
+
+      const setSessionSpy = vi.spyOn(sessionModule, 'setSessionCookie');
+
+      // Valid login
+      const successResult = await loginAction(email, 'correctPassword');
+      expect(successResult.success).toBe(true);
+      expect(setSessionSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email,
+          name: 'User Login',
+        }),
+      );
+
+      // Invalid password
+      const wrongPassResult = await loginAction(email, 'wrongPassword');
+      expect(wrongPassResult.success).toBe(false);
+      expect(wrongPassResult.error).toBe('invalid_credentials');
+
+      // Non-existent user
+      const notFoundResult = await loginAction('nonexistent@nudge.app', 'anyPassword');
+      expect(notFoundResult.success).toBe(false);
+      expect(notFoundResult.error).toBe('account_not_found');
+    });
+
+    it('handles forgotPasswordAction and resetPasswordAction flow', async () => {
+      const email = `forgot-${Date.now()}@nudge.app`;
+      const { registerUser, createPasswordResetToken } = await import('@/lib/auth');
+      await registerUser(email, 'initialPassword123', 'Forgot User');
+
+      // Invalid email
+      const badEmailResult = await forgotPasswordAction('not-an-email');
+      expect(badEmailResult.success).toBe(false);
+      expect(badEmailResult.error).toBe('invalid_email');
+
+      // Non-existent email
+      const notFoundForgot = await forgotPasswordAction('doesnotexist@nudge.app');
+      expect(notFoundForgot.success).toBe(false);
+      expect(notFoundForgot.error).toBe('account_not_found');
+
+      // Valid email sends reset link
+      const validForgot = await forgotPasswordAction(email);
+      expect(validForgot.success).toBe(true);
+
+      // Perform reset with a token
+      const token = await createPasswordResetToken(email);
+      const resetResult = await resetPasswordAction(token, 'newSecretPassword123');
+      expect(resetResult.success).toBe(true);
+
+      // Can now login with new password
+      const newLogin = await loginAction(email, 'newSecretPassword123');
+      expect(newLogin.success).toBe(true);
+    });
   });
 
-  it('returns unauthorized when session is missing in updateUserNameAction', async () => {
-    vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce(null);
+  describe('User Profile Actions', () => {
+    it('updates user name via updateUserNameAction', async () => {
+      const email = `active-user-${Date.now()}@nudge.app`;
+      vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
+        email,
+        name: 'Initial Name',
+        householdId: 'hh_active',
+      });
+      vi.spyOn(sessionModule, 'setSessionCookie').mockResolvedValueOnce();
 
-    const result = await updateUserNameAction('Some Name');
-    expect(result.success).toBe(false);
-    expect(result.error).toBe('unauthorized');
+      const { registerUser } = await import('@/lib/auth');
+      await registerUser(email, 'password123', 'Initial Name');
+
+      const result = await updateUserNameAction('Updated Name');
+      expect(result.success).toBe(true);
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it('validates name length in updateUserNameAction', async () => {
+      vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce({
+        email: 'active-user@nudge.app',
+        name: 'Initial Name',
+        householdId: 'hh_active',
+      });
+
+      const result = await updateUserNameAction('A');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('invalid_name');
+    });
+
+    it('returns unauthorized when session is missing in updateUserNameAction', async () => {
+      vi.spyOn(sessionModule, 'getSession').mockResolvedValueOnce(null);
+
+      const result = await updateUserNameAction('Some Name');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('unauthorized');
+    });
   });
 });

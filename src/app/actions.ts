@@ -16,12 +16,15 @@ import {
   HouseholdProfile,
 } from '@/lib/db';
 import {
-  createMagicLinkToken,
+  authenticateUser,
+  registerUser,
+  createPasswordResetToken,
+  resetPasswordWithToken,
   findUserByEmail,
   deleteUserAccount,
   updateUserName,
 } from '@/lib/auth';
-import { sendMagicLinkEmail } from '@/lib/email';
+import { sendPasswordResetEmail } from '@/lib/email';
 import { Task } from '@/types';
 
 function safeRevalidate(path: string) {
@@ -105,14 +108,59 @@ export async function refreshRecurringTasksAction(): Promise<Task[]> {
   return tasks;
 }
 
-export interface SendMagicLinkOptions {
-  name?: string;
-  mode?: 'login' | 'register';
+export async function loginAction(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const result = await authenticateUser(email, password);
+    if (!result.success || !result.user) {
+      return { success: false, error: result.error || 'invalid_credentials' };
+    }
+
+    await setSessionCookie({
+      email: result.user.email,
+      name: result.user.name,
+      householdId: result.user.householdId,
+    });
+
+    safeRevalidate('/');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[loginAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_login';
+    return { success: false, error: message };
+  }
 }
 
-export async function sendMagicLinkAction(
+export async function registerAction(
   email: string,
-  options?: SendMagicLinkOptions,
+  password: string,
+  name?: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const result = await registerUser(email, password, name);
+    if (!result.success || !result.user) {
+      return { success: false, error: result.error || 'failed_to_register' };
+    }
+
+    await setSessionCookie({
+      email: result.user.email,
+      name: result.user.name,
+      householdId: result.user.householdId,
+    });
+
+    safeRevalidate('/');
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[registerAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_register';
+    return { success: false, error: message };
+  }
+}
+
+export async function forgotPasswordAction(
+  email: string,
 ): Promise<{ success: boolean; error?: string }> {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const normalizedEmail = email ? email.trim().toLowerCase() : '';
@@ -121,25 +169,13 @@ export async function sendMagicLinkAction(
     return { success: false, error: 'invalid_email' };
   }
 
-  const mode = options?.mode || 'login';
-  const name = options?.name?.trim();
-
-  if (mode === 'register' && (!name || name.length < 2)) {
-    return { success: false, error: 'invalid_name' };
-  }
-
   try {
-    const existingUser = await findUserByEmail(normalizedEmail);
-
-    if (mode === 'login' && !existingUser) {
+    const user = await findUserByEmail(normalizedEmail);
+    if (!user) {
       return { success: false, error: 'account_not_found' };
     }
 
-    if (mode === 'register' && existingUser) {
-      return { success: false, error: 'account_already_exists' };
-    }
-
-    const token = await createMagicLinkToken(normalizedEmail, name);
+    const token = await createPasswordResetToken(normalizedEmail);
 
     let baseUrl = process.env.APP_URL;
     if (!baseUrl) {
@@ -154,16 +190,32 @@ export async function sendMagicLinkAction(
       }
     }
 
-    const magicLinkUrl = `${baseUrl}/auth/verify?token=${token}`;
-    return await sendMagicLinkEmail({
+    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
+    return await sendPasswordResetEmail({
       email: normalizedEmail,
-      magicLinkUrl,
-      name: name || existingUser?.name,
-      isSignUp: mode === 'register',
+      resetUrl,
+      name: user.name,
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Erro ao processar envio do link';
-    console.error('[sendMagicLinkAction Error]', error);
+    console.error('[forgotPasswordAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_send_reset_email';
+    return { success: false, error: message };
+  }
+}
+
+export async function resetPasswordAction(
+  token: string,
+  newPassword: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const result = await resetPasswordWithToken(token, newPassword);
+    if (!result.success) {
+      return { success: false, error: result.error || 'invalid_token' };
+    }
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[resetPasswordAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_reset_password';
     return { success: false, error: message };
   }
 }

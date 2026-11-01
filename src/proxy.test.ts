@@ -43,6 +43,13 @@ describe('proxy', () => {
     expect(response.status).toBe(200);
   });
 
+  it('allows unauthenticated user accessing /reset-password', async () => {
+    const request = new NextRequest('http://localhost:3000/reset-password?token=123');
+    const response = await proxy(request);
+
+    expect(response.status).toBe(200);
+  });
+
   it('redirects authenticated user accessing /login to /', async () => {
     const request = new NextRequest('http://localhost:3000/login', {
       headers: {

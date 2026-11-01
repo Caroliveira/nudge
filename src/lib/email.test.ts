@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { sendMagicLinkEmail } from './email';
+import { sendPasswordResetEmail } from './email';
 
 const mockSend = vi.fn();
 
@@ -25,13 +25,13 @@ describe('email.ts', () => {
     process.env = originalEnv;
   });
 
-  it('logs magic link to console when RESEND_API_KEY is not set', async () => {
+  it('logs password reset link to console when RESEND_API_KEY is not set', async () => {
     delete process.env.RESEND_API_KEY;
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    const result = await sendMagicLinkEmail({
+    const result = await sendPasswordResetEmail({
       email: 'test@nudge.app',
-      magicLinkUrl: 'http://localhost:3000/auth/verify?token=123',
+      resetUrl: 'http://localhost:3000/reset-password?token=123',
     });
 
     expect(result.success).toBe(true);
@@ -40,40 +40,39 @@ describe('email.ts', () => {
     consoleSpy.mockRestore();
   });
 
-  it('sends email using Resend when RESEND_API_KEY is set', async () => {
+  it('sends password reset email using Resend when RESEND_API_KEY is set', async () => {
     process.env.RESEND_API_KEY = 're_test_key_123';
     mockSend.mockResolvedValueOnce({ data: { id: 'email_123' }, error: null });
 
-    const result = await sendMagicLinkEmail({
+    const result = await sendPasswordResetEmail({
       email: 'test@nudge.app',
-      magicLinkUrl: 'http://localhost:3000/auth/verify?token=123',
+      resetUrl: 'http://localhost:3000/reset-password?token=123',
     });
 
     expect(result.success).toBe(true);
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'test@nudge.app',
-        subject: 'Seu link de acesso ao Nudge',
+        subject: 'Recuperação de senha - Nudge',
       }),
     );
   });
 
-  it('customizes subject and greeting for registration with name', async () => {
+  it('customizes greeting when user name is provided', async () => {
     process.env.RESEND_API_KEY = 're_test_key_123';
     mockSend.mockResolvedValueOnce({ data: { id: 'email_456' }, error: null });
 
-    const result = await sendMagicLinkEmail({
-      email: 'newuser@nudge.app',
+    const result = await sendPasswordResetEmail({
+      email: 'carla@nudge.app',
       name: 'Carla',
-      isSignUp: true,
-      magicLinkUrl: 'http://localhost:3000/auth/verify?token=456',
+      resetUrl: 'http://localhost:3000/reset-password?token=456',
     });
 
     expect(result.success).toBe(true);
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: 'newuser@nudge.app',
-        subject: 'Bem-vindo ao Nudge! Confirme seu cadastro',
+        to: 'carla@nudge.app',
+        subject: 'Recuperação de senha - Nudge',
         html: expect.stringContaining('Olá, Carla!'),
       }),
     );
@@ -83,9 +82,9 @@ describe('email.ts', () => {
     process.env.RESEND_API_KEY = 're_test_key_123';
     mockSend.mockRejectedValueOnce(new Error('Resend rate limit exceeded'));
 
-    const result = await sendMagicLinkEmail({
+    const result = await sendPasswordResetEmail({
       email: 'test@nudge.app',
-      magicLinkUrl: 'http://localhost:3000/auth/verify?token=123',
+      resetUrl: 'http://localhost:3000/reset-password?token=123',
     });
 
     expect(result.success).toBe(false);

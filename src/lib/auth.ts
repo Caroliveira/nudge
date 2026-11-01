@@ -1,140 +1,57 @@
+import { scryptSync, randomBytes, timingSafeEqual } from 'node:crypto';
 import { PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { docClient, TABLE_NAME, isDynamoConfigured } from './dynamodb';
 
 export interface UserAccount {
   email: string;
   name?: string;
+  passwordHash: string;
   householdId: string;
   createdAt: number;
 }
 
-export interface AuthToken {
+export interface PasswordResetToken {
   token: string;
   email: string;
-  name?: string;
   expiresAt: number;
   ttl?: number;
   createdAt: number;
 }
 
-export interface VerifiedTokenPayload {
-  email: string;
-  name?: string;
-}
-
 // In-memory fallbacks for development without AWS credentials or tests
 const globalAuth = globalThis as unknown as {
-  __nudge_memory_tokens__?: Map<string, AuthToken>;
+  __nudge_memory_tokens__?: Map<string, PasswordResetToken>;
   __nudge_memory_users__?: Map<string, UserAccount>;
 };
 
-const memoryTokens = globalAuth.__nudge_memory_tokens__ ?? new Map<string, AuthToken>();
+const memoryTokens = globalAuth.__nudge_memory_tokens__ ?? new Map<string, PasswordResetToken>();
 const memoryUsers = globalAuth.__nudge_memory_users__ ?? new Map<string, UserAccount>();
 
 globalAuth.__nudge_memory_tokens__ = memoryTokens;
 globalAuth.__nudge_memory_users__ = memoryUsers;
 
 /**
- * Creates and stores a 15-minute magic link token for the given email (and optional name for registration).
+ * Generates a secure salt and scrypt hash for the password.
  */
-export async function createMagicLinkToken(email: string, name?: string): Promise<string> {
-  const normalizedEmail = email.trim().toLowerCase();
-  const trimmedName = name?.trim() || undefined;
-  const token = crypto.randomUUID();
-  const now = Date.now();
-  const expiresAt = now + 15 * 60 * 1000; // 15 minutes
-  const ttl = Math.floor(expiresAt / 1000); // DynamoDB TTL attribute expects UNIX timestamp in seconds
-
-  const authToken: AuthToken = {
-    token,
-    email: normalizedEmail,
-    ...(trimmedName ? { name: trimmedName } : {}),
-    expiresAt,
-    ttl,
-    createdAt: now,
-  };
-
-  if (!isDynamoConfigured) {
-    memoryTokens.set(token, authToken);
-    return token;
-  }
-
-  try {
-    const command = new PutCommand({
-      TableName: TABLE_NAME,
-      Item: {
-        PK: `AUTH_TOKEN#${token}`,
-        SK: 'TOKEN',
-        type: 'AUTH_TOKEN',
-        token,
-        email: normalizedEmail,
-        ...(trimmedName ? { name: trimmedName } : {}),
-        expiresAt,
-        ttl,
-        createdAt: now,
-      },
-    });
-
-    await docClient.send(command);
-    return token;
-  } catch (error) {
-    console.error('[DynamoDB] Error saving auth token:', error);
-    if (process.env.NODE_ENV === 'production') {
-      throw error;
-    }
-    memoryTokens.set(token, authToken);
-    return token;
-  }
+export function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
 }
 
 /**
- * Verifies and invalidates a magic link token atomically.
- * Returns the email and name if valid and not expired, otherwise returns null.
+ * Secure constant-time verification of password against salt:hash string.
  */
-export async function verifyMagicLinkToken(token: string): Promise<VerifiedTokenPayload | null> {
-  const now = Date.now();
-
-  if (!isDynamoConfigured) {
-    const item = memoryTokens.get(token);
-    if (!item) return null;
-    memoryTokens.delete(token); // Single-use token
-    if (now > item.expiresAt) return null;
-    return { email: item.email, name: item.name };
-  }
-
+export function verifyPassword(password: string, combinedHash: string): boolean {
+  if (!combinedHash || !password) return false;
+  const [salt, key] = combinedHash.split(':');
+  if (!salt || !key) return false;
   try {
-    // Atomic single-step delete and return: guarantees strictly single-use and prevents race conditions
-    const deleteCommand = new DeleteCommand({
-      TableName: TABLE_NAME,
-      Key: {
-        PK: `AUTH_TOKEN#${token}`,
-        SK: 'TOKEN',
-      },
-      ReturnValues: 'ALL_OLD',
-    });
-
-    const response = await docClient.send(deleteCommand);
-    const item = response.Attributes as AuthToken | undefined;
-
-    if (!item) {
-      return null;
-    }
-
-    if (now > item.expiresAt) {
-      return null;
-    }
-
-    return { email: item.email, name: item.name };
-  } catch (error) {
-    console.error('[DynamoDB] Error verifying token:', error);
-    if (process.env.NODE_ENV === 'production') {
-      throw error;
-    }
-    const item = memoryTokens.get(token);
-    if (!item) return null;
-    memoryTokens.delete(token);
-    if (now > item.expiresAt) return null;
-    return { email: item.email, name: item.name };
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = scryptSync(password, salt, 64);
+    return timingSafeEqual(keyBuffer, derivedKey);
+  } catch {
+    return false;
   }
 }
 
@@ -163,6 +80,7 @@ export async function findUserByEmail(email: string): Promise<UserAccount | null
       return {
         email: response.Item.email,
         name: response.Item.name,
+        passwordHash: response.Item.passwordHash || '',
         householdId: response.Item.householdId,
         createdAt: response.Item.createdAt,
       };
@@ -179,62 +97,53 @@ export async function findUserByEmail(email: string): Promise<UserAccount | null
 }
 
 /**
- * Retrieves an existing user by email or creates a new one with a unique householdId.
- * If a name is provided and the user does not have a name yet, updates it.
+ * Registers a new user with password.
  */
-export async function getOrCreateUser(email: string, name?: string): Promise<UserAccount> {
+export async function registerUser(
+  email: string,
+  password: string,
+  name?: string,
+): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
   const normalizedEmail = email.trim().toLowerCase();
   const trimmedName = name?.trim() || undefined;
-  const now = Date.now();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+    return { success: false, error: 'invalid_email' };
+  }
+
+  if (!password || password.length < 6) {
+    return { success: false, error: 'password_too_short' };
+  }
+
+  if (trimmedName !== undefined && trimmedName.length < 2) {
+    return { success: false, error: 'invalid_name' };
+  }
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
-    if (trimmedName && !existing.name) {
-      existing.name = trimmedName;
-      if (!isDynamoConfigured) {
-        memoryUsers.set(normalizedEmail, existing);
-      } else {
-        try {
-          const putCommand = new PutCommand({
-            TableName: TABLE_NAME,
-            Item: {
-              PK: `USER#${normalizedEmail}`,
-              SK: 'ACCOUNT',
-              type: 'USER',
-              email: normalizedEmail,
-              name: trimmedName,
-              householdId: existing.householdId,
-              createdAt: existing.createdAt,
-            },
-          });
-          await docClient.send(putCommand);
-        } catch (error) {
-          console.error('[DynamoDB] Error updating user name:', error);
-          if (process.env.NODE_ENV === 'production') {
-            throw error;
-          }
-        }
-      }
-    }
-    return existing;
+    return { success: false, error: 'account_already_exists' };
   }
 
-  // Create new user account and associated household
-  const newHouseholdId = `hh_${crypto.randomUUID()}`;
+  const passwordHash = hashPassword(password);
+  const now = Date.now();
+  const householdId = `hh_${crypto.randomUUID()}`;
+
   const newUser: UserAccount = {
     email: normalizedEmail,
     ...(trimmedName ? { name: trimmedName } : {}),
-    householdId: newHouseholdId,
+    passwordHash,
+    householdId,
     createdAt: now,
   };
 
   if (!isDynamoConfigured) {
     memoryUsers.set(normalizedEmail, newUser);
-    return newUser;
+    return { success: true, user: newUser };
   }
 
   try {
-    const putCommand = new PutCommand({
+    const command = new PutCommand({
       TableName: TABLE_NAME,
       Item: {
         PK: `USER#${normalizedEmail}`,
@@ -242,20 +151,227 @@ export async function getOrCreateUser(email: string, name?: string): Promise<Use
         type: 'USER',
         email: normalizedEmail,
         ...(trimmedName ? { name: trimmedName } : {}),
-        householdId: newHouseholdId,
+        passwordHash,
+        householdId,
         createdAt: now,
       },
     });
 
-    await docClient.send(putCommand);
-    return newUser;
+    await docClient.send(command);
+    return { success: true, user: newUser };
   } catch (error) {
     console.error('[DynamoDB] Error creating user:', error);
     if (process.env.NODE_ENV === 'production') {
       throw error;
     }
     memoryUsers.set(normalizedEmail, newUser);
-    return newUser;
+    return { success: true, user: newUser };
+  }
+}
+
+/**
+ * Authenticates user credentials with email and password.
+ */
+export async function authenticateUser(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; user?: UserAccount; error?: string }> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const existing = await findUserByEmail(normalizedEmail);
+  if (!existing) {
+    return { success: false, error: 'account_not_found' };
+  }
+
+  if (!existing.passwordHash || !verifyPassword(password, existing.passwordHash)) {
+    return { success: false, error: 'invalid_credentials' };
+  }
+
+  return { success: true, user: existing };
+}
+
+/**
+ * Creates and stores a 15-minute password reset token.
+ */
+export async function createPasswordResetToken(email: string): Promise<string> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const token = crypto.randomUUID();
+  const now = Date.now();
+  const expiresAt = now + 15 * 60 * 1000; // 15 minutes
+  const ttl = Math.floor(expiresAt / 1000);
+
+  const resetToken: PasswordResetToken = {
+    token,
+    email: normalizedEmail,
+    expiresAt,
+    ttl,
+    createdAt: now,
+  };
+
+  if (!isDynamoConfigured) {
+    memoryTokens.set(token, resetToken);
+    return token;
+  }
+
+  try {
+    const command = new PutCommand({
+      TableName: TABLE_NAME,
+      Item: {
+        PK: `RESET_TOKEN#${token}`,
+        SK: 'TOKEN',
+        type: 'PASSWORD_RESET',
+        token,
+        email: normalizedEmail,
+        expiresAt,
+        ttl,
+        createdAt: now,
+      },
+    });
+
+    await docClient.send(command);
+    return token;
+  } catch (error) {
+    console.error('[DynamoDB] Error saving reset token:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
+    memoryTokens.set(token, resetToken);
+    return token;
+  }
+}
+
+/**
+ * Verifies if a password reset token is valid and not expired.
+ */
+export async function verifyPasswordResetToken(token: string): Promise<string | null> {
+  const now = Date.now();
+
+  if (!isDynamoConfigured) {
+    const item = memoryTokens.get(token);
+    if (!item) return null;
+    if (now > item.expiresAt) return null;
+    return item.email;
+  }
+
+  try {
+    const getCommand = new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `RESET_TOKEN#${token}`,
+        SK: 'TOKEN',
+      },
+    });
+
+    const response = await docClient.send(getCommand);
+    const item = response.Item as PasswordResetToken | undefined;
+    if (!item) return null;
+    if (now > item.expiresAt) return null;
+    return item.email;
+  } catch (error) {
+    console.error('[DynamoDB] Error verifying reset token:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
+    const item = memoryTokens.get(token);
+    if (!item) return null;
+    if (now > item.expiresAt) return null;
+    return item.email;
+  }
+}
+
+/**
+ * Resets a user's password using a single-use reset token.
+ */
+export async function resetPasswordWithToken(
+  token: string,
+  newPassword: string,
+): Promise<{ success: boolean; email?: string; error?: string }> {
+  if (!newPassword || newPassword.length < 6) {
+    return { success: false, error: 'password_too_short' };
+  }
+
+  const now = Date.now();
+  let email: string | null = null;
+
+  if (!isDynamoConfigured) {
+    const item = memoryTokens.get(token);
+    if (!item || now > item.expiresAt) {
+      if (item) memoryTokens.delete(token);
+      return { success: false, error: 'invalid_token' };
+    }
+    email = item.email;
+    memoryTokens.delete(token);
+  } else {
+    try {
+      const deleteCommand = new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: `RESET_TOKEN#${token}`,
+          SK: 'TOKEN',
+        },
+        ReturnValues: 'ALL_OLD',
+      });
+      const response = await docClient.send(deleteCommand);
+      const item = response.Attributes as PasswordResetToken | undefined;
+      if (!item || now > item.expiresAt) {
+        return { success: false, error: 'invalid_token' };
+      }
+      email = item.email;
+    } catch (error) {
+      console.error('[DynamoDB] Error deleting reset token:', error);
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+      const item = memoryTokens.get(token);
+      if (!item || now > item.expiresAt) {
+        return { success: false, error: 'invalid_token' };
+      }
+      email = item.email;
+      memoryTokens.delete(token);
+    }
+  }
+
+  if (!email) {
+    return { success: false, error: 'invalid_token' };
+  }
+
+  const existing = await findUserByEmail(email);
+  if (!existing) {
+    return { success: false, error: 'account_not_found' };
+  }
+
+  const passwordHash = hashPassword(newPassword);
+  existing.passwordHash = passwordHash;
+
+  if (!isDynamoConfigured) {
+    memoryUsers.set(email, existing);
+    return { success: true, email };
+  }
+
+  try {
+    const putCommand = new PutCommand({
+      TableName: TABLE_NAME,
+      Item: {
+        PK: `USER#${email}`,
+        SK: 'ACCOUNT',
+        type: 'USER',
+        email: existing.email,
+        ...(existing.name ? { name: existing.name } : {}),
+        passwordHash,
+        householdId: existing.householdId,
+        createdAt: existing.createdAt,
+      },
+    });
+
+    await docClient.send(putCommand);
+    return { success: true, email };
+  } catch (error) {
+    console.error('[DynamoDB] Error updating password:', error);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
+    memoryUsers.set(email, existing);
+    return { success: true, email };
   }
 }
 
@@ -290,6 +406,7 @@ export async function updateUserName(email: string, name: string): Promise<UserA
         type: 'USER',
         email: normalizedEmail,
         name: trimmedName,
+        passwordHash: existing.passwordHash,
         householdId: existing.householdId,
         createdAt: existing.createdAt,
       },

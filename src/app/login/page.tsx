@@ -4,7 +4,7 @@ import LoginPage from '@/views/LoginPage';
 
 export const metadata: Metadata = {
   title: 'Entrar - Nudge',
-  description: 'Acesse seu espaço de tarefas no Nudge via link mágico de e-mail.',
+  description: 'Acesse seu espaço de tarefas no Nudge com calma e foco.',
 };
 
 export default function Page() {

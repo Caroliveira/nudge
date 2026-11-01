@@ -55,9 +55,9 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredPlaces = places.filter((p) => p.toLowerCase().includes(place.trim().toLowerCase()));
-
-  const isExactMatch = places.some((p) => p.toLowerCase() === place.trim().toLowerCase());
+  const filteredPlaces = places.filter((p) =>
+    p.toLowerCase().includes(place.trim().toLowerCase()),
+  );
 
   const handleSelectPlace = (selectedPlace: string) => {
     updatePlace(selectedPlace);
@@ -179,58 +179,60 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
-              className="absolute z-30 mt-1.5 w-full bg-surface border border-surface rounded-xl shadow-lg max-h-56 overflow-y-auto py-1 divide-y divide-surface/40 backdrop-blur-md"
+              className="absolute z-30 mt-1.5 w-full bg-surface border border-surface rounded-xl shadow-lg max-h-56 overflow-y-auto py-1 backdrop-blur-md"
             >
-              {/* Option to create new place if not an exact match */}
-              {place.trim() && !isExactMatch && (
+              {filteredPlaces.length > 0 ? (
                 <div className="p-1">
+                  {filteredPlaces.map((p) => {
+                    const isSelected = place.toLowerCase() === p.toLowerCase();
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => handleSelectPlace(p)}
+                        className={`w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-colors ${
+                          isSelected
+                            ? 'bg-accent/15 text-accent font-medium'
+                            : 'text-text hover:bg-warm/60'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-soft" />
+                          <span>{p}</span>
+                        </div>
+                        {isSelected && <Check className="w-4 h-4 text-accent" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : place.trim() ? (
+                <div className="p-1.5">
                   <button
                     type="button"
                     onClick={() => handleCreatePlace(place.trim())}
-                    className="w-full text-left px-3 py-2 text-sm text-accent hover:bg-accent/10 rounded-lg flex items-center gap-2 font-medium transition-colors"
+                    className="w-full text-left px-3 py-2 text-sm text-accent bg-accent/10 hover:bg-accent/15 rounded-lg flex items-center justify-between gap-2 transition-colors group cursor-pointer"
                   >
-                    <Plus className="w-4 h-4 shrink-0" />
-                    <span>
-                      {t('form.createPlace', 'Criar novo lugar')}: &quot;
-                      <span className="font-semibold">{place.trim()}</span>&quot;
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-5 h-5 rounded-md bg-accent/20 flex items-center justify-center shrink-0 text-accent">
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="truncate">
+                        {t('form.createPlace', 'Criar novo lugar')}:{' '}
+                        <strong className="font-semibold text-text">
+                          &ldquo;{place.trim()}&rdquo;
+                        </strong>
+                      </span>
+                    </div>
                   </button>
                 </div>
+              ) : (
+                <p className="px-3 py-2 text-xs text-soft">
+                  {t(
+                    'form.noPlacesYet',
+                    'Nenhum lugar cadastrado ainda. Digite um nome acima!',
+                  )}
+                </p>
               )}
-
-              {/* Filtered Existing Places */}
-              <div className="p-1">
-                {filteredPlaces.length > 0
-                  ? filteredPlaces.map((p) => {
-                      const isSelected = place.toLowerCase() === p.toLowerCase();
-                      return (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => handleSelectPlace(p)}
-                          className={`w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-colors ${
-                            isSelected
-                              ? 'bg-accent/15 text-accent font-medium'
-                              : 'text-text hover:bg-warm/60'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5 text-soft" />
-                            <span>{p}</span>
-                          </div>
-                          {isSelected && <Check className="w-4 h-4 text-accent" />}
-                        </button>
-                      );
-                    })
-                  : !place.trim() && (
-                      <p className="px-3 py-2 text-xs text-soft">
-                        {t(
-                          'form.noPlacesYet',
-                          'Nenhum lugar cadastrado ainda. Digite um nome acima!',
-                        )}
-                      </p>
-                    )}
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

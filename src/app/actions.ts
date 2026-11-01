@@ -102,6 +102,16 @@ export async function toggleTaskAction(taskId: string) {
 
 export async function refreshRecurringTasksAction(): Promise<Task[]> {
   const householdId = await getHouseholdId();
+  const { tasks: currentTasks } = await getHouseholdData(householdId);
+  const now = Date.now();
+  const hasPendingRefreshes = currentTasks.some(
+    (t) => t.isCompleted && t.nextAvailableAt && now >= t.nextAvailableAt,
+  );
+
+  if (!hasPendingRefreshes) {
+    return currentTasks;
+  }
+
   const tasks = await refreshRecurringTasks(householdId);
 
   safeRevalidate('/');

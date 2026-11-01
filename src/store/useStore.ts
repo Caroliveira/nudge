@@ -258,20 +258,25 @@ export const useStore = create<StoreState>()((set, get) => ({
   },
 
   refreshRecurringTasks: () => {
+    let hasChanges = false;
     set((state) => {
       const now = Date.now();
       const tasks = state.tasks.map((t) => {
         if (t.isCompleted && t.nextAvailableAt && now >= t.nextAvailableAt) {
+          hasChanges = true;
           return { ...t, isCompleted: false, nextAvailableAt: undefined };
         }
         return t;
       });
-      return { tasks };
+      return hasChanges ? { tasks } : state;
     });
-    if (typeof window !== 'undefined') {
-      refreshRecurringTasksAction().catch((err) =>
-        console.error('Failed to refresh tasks in DynamoDB', err),
-      );
+
+    if (typeof window !== 'undefined' && hasChanges) {
+      refreshRecurringTasksAction().catch((err) => {
+        if (err?.name !== 'AbortError') {
+          console.error('Failed to refresh tasks in DynamoDB', err);
+        }
+      });
     }
   },
 }));

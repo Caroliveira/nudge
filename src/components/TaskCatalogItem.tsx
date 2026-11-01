@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Check, ChevronLeft } from 'lucide-react';
+import { Check, ChevronLeft, MapPin } from 'lucide-react';
 import { MotionValue } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Task } from '../types';
@@ -91,6 +91,12 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
           </h4>
           <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-tighter text-soft mt-1">
             <span className="font-bold">{t(`effort.${task.level.toLowerCase()}`)}</span>
+            {task.place && (
+              <span className="px-1.5 py-0.5 rounded bg-warm/80 border border-surface text-text font-medium inline-flex items-center gap-1 normal-case tracking-normal text-[11px]">
+                <MapPin className="w-2.5 h-2.5 text-accent" />
+                {task.place}
+              </span>
+            )}
             {task.recurrenceUnit && task.recurrenceUnit !== 'none' && (
               <span
                 className={`px-1.5 py-0.5 rounded italic ${

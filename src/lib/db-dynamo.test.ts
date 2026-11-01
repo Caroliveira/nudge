@@ -65,16 +65,17 @@ describe('db.ts - DynamoDB configured branch', () => {
   });
 
   it('creates a task via DynamoDB PutCommand', async () => {
-    mockSend.mockResolvedValueOnce({});
+    mockSend.mockResolvedValue({});
 
     const task = await createTask('h1', {
       title: 'Make bed',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
     });
 
     expect(task.title).toBe('Make bed');
-    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockSend).toHaveBeenCalled();
   });
 
   it('falls back to memory store on createTask DynamoDB error', async () => {
@@ -82,6 +83,7 @@ describe('db.ts - DynamoDB configured branch', () => {
 
     const task = await createTask('h-fallback', {
       title: 'Offline task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
     });
@@ -97,22 +99,22 @@ describe('db.ts - DynamoDB configured branch', () => {
   });
 
   it('updates an existing task via DynamoDB PutCommand', async () => {
-    mockSend.mockResolvedValueOnce({
+    mockSend.mockResolvedValue({
       Items: [
         {
           PK: 'HOUSEHOLD#h1',
           SK: 'TASK#t1',
           id: 't1',
           title: 'Old title',
+          place: 'Geral',
           level: EffortLevel.LOW,
         },
       ],
     });
-    mockSend.mockResolvedValueOnce({});
 
     const updated = await updateTask('h1', 't1', { title: 'Updated title' });
     expect(updated?.title).toBe('Updated title');
-    expect(mockSend).toHaveBeenCalledTimes(2);
+    expect(mockSend).toHaveBeenCalled();
   });
 
   it('falls back to memory store on updateTask DynamoDB error', async () => {

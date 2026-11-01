@@ -20,6 +20,7 @@ describe('useCatalogStats', () => {
     {
       id: '1',
       title: 'Low Effort Done Today',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       lastCompletedAt: today.getTime(),
@@ -30,6 +31,7 @@ describe('useCatalogStats', () => {
     {
       id: '2',
       title: 'Medium Effort Done Yesterday',
+      place: 'Geral',
       level: EffortLevel.MEDIUM,
       isCompleted: true,
       lastCompletedAt: yesterday.getTime(),
@@ -40,6 +42,7 @@ describe('useCatalogStats', () => {
     {
       id: '3',
       title: 'High Effort Incomplete',
+      place: 'Geral',
       level: EffortLevel.HIGH,
       isCompleted: false,
       recurrenceUnit: 'none',
@@ -48,6 +51,7 @@ describe('useCatalogStats', () => {
     {
       id: '4',
       title: 'Low Effort Incomplete',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
@@ -114,6 +118,7 @@ describe('useCatalogStats', () => {
       {
         id: '1',
         title: 'Done two days ago',
+        place: 'Geral',
         level: EffortLevel.LOW,
         isCompleted: true,
         lastCompletedAt: new Date('2023-12-30T12:00:00Z').getTime(),

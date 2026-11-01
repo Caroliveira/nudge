@@ -14,6 +14,9 @@ import {
   calculateNewStreak,
   saveHouseholdProfile,
   HouseholdProfile,
+  addHouseholdPlace,
+  renameHouseholdPlace,
+  deleteHouseholdPlace,
 } from '@/lib/db';
 import {
   authenticateUser,
@@ -277,6 +280,57 @@ export async function updateUserNameAction(
   } catch (error: unknown) {
     console.error('[updateUserNameAction Error]', error);
     const message = error instanceof Error ? error.message : 'failed_to_update_name';
+    return { success: false, error: message };
+  }
+}
+
+export async function addPlaceAction(place: string): Promise<string[]> {
+  const householdId = await getHouseholdId();
+  const places = await addHouseholdPlace(householdId, place);
+
+  safeRevalidate('/');
+  safeRevalidate('/catalog');
+  safeRevalidate('/settings');
+
+  return places;
+}
+
+export async function renamePlaceAction(
+  oldPlace: string,
+  newPlace: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const householdId = await getHouseholdId();
+    await renameHouseholdPlace(householdId, oldPlace, newPlace);
+
+    safeRevalidate('/');
+    safeRevalidate('/catalog');
+    safeRevalidate('/settings');
+
+    return { success: true };
+  } catch (error: unknown) {
+    console.error('[renamePlaceAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_rename_place';
+    return { success: false, error: message };
+  }
+}
+
+export async function deletePlaceAction(
+  place: string,
+  reassignTo?: string,
+): Promise<{ success: boolean; error?: string; count?: number }> {
+  try {
+    const householdId = await getHouseholdId();
+    const result = await deleteHouseholdPlace(householdId, place, reassignTo);
+
+    safeRevalidate('/');
+    safeRevalidate('/catalog');
+    safeRevalidate('/settings');
+
+    return result;
+  } catch (error: unknown) {
+    console.error('[deletePlaceAction Error]', error);
+    const message = error instanceof Error ? error.message : 'failed_to_delete_place';
     return { success: false, error: message };
   }
 }

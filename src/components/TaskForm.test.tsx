@@ -49,6 +49,7 @@ describe('TaskForm', () => {
     render(<TaskForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
     await user.type(screen.getByPlaceholderText('What needs doing?'), 'New Task');
+    await user.type(screen.getByPlaceholderText('Search or create place...'), 'Cozinha');
     await user.selectOptions(screen.getByLabelText('Effort Level'), EffortLevel.MEDIUM);
 
     await user.click(screen.getByText('Save Task'));
@@ -57,6 +58,7 @@ describe('TaskForm', () => {
       () => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
           title: 'New Task',
+          place: 'Cozinha',
           level: EffortLevel.MEDIUM,
           recurrenceUnit: 'none',
           recurrenceInterval: undefined,
@@ -90,11 +92,34 @@ describe('TaskForm', () => {
     });
   });
 
+  it('does not submit if place is empty and shows error state', async () => {
+    const user = userEvent.setup();
+    render(<TaskForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+
+    await user.type(screen.getByPlaceholderText('What needs doing?'), 'Valid Title');
+    const placeInput = screen.getByPlaceholderText('Search or create place...');
+    await user.click(screen.getByText('Save Task'));
+
+    expect(mockOnSubmit).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(placeInput).toHaveAttribute('aria-invalid', 'true');
+      expect(placeInput).toHaveClass('ring-red-700');
+    });
+
+    await user.type(placeInput, 'Sala');
+    await waitFor(() => {
+      expect(placeInput).toHaveAttribute('aria-invalid', 'false');
+      expect(placeInput).not.toHaveClass('ring-red-700');
+    });
+  });
+
   it('validates recurrence interval when unit is selected', async () => {
     const user = userEvent.setup();
     render(<TaskForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
 
     await user.type(screen.getByPlaceholderText('What needs doing?'), 'Recurring Task');
+    await user.type(screen.getByPlaceholderText('Search or create place...'), 'Quarto');
     await user.selectOptions(screen.getByLabelText('Recurrence'), 'days');
 
     // Clear interval (it defaults to 1)
@@ -122,6 +147,8 @@ describe('TaskForm', () => {
       () => {
         expect(mockOnSubmit).toHaveBeenCalledWith(
           expect.objectContaining({
+            title: 'Recurring Task',
+            place: 'Quarto',
             recurrenceUnit: 'days',
             recurrenceInterval: 5,
           }),

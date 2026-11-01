@@ -4,11 +4,26 @@ import { docClient, TABLE_NAME, isDynamoConfigured } from './dynamodb';
 import { Task, EffortLevel, RecurrenceUnit } from '@/types';
 import { calculateTaskCompletion } from '@/utils/taskUtils';
 
+export const DEFAULT_PLACES = [
+  'Cozinha',
+  'Quarto',
+  'Banheiro Suíte',
+  'Banheiro Social',
+  'Lavanderia',
+  'Sala',
+  'Escritório',
+  'Canil',
+  'Quintal',
+  'Pets',
+  'Geral',
+];
+
 export interface HouseholdProfile {
   currentStreak: number;
   bestStreak: number;
   streakLastUpdatedAt?: number;
   updatedAt?: number;
+  places?: string[];
 }
 
 export interface HouseholdData {
@@ -34,6 +49,7 @@ function getMemoryHousehold(householdId: string) {
       profile: {
         currentStreak: 0,
         bestStreak: 0,
+        places: [...DEFAULT_PLACES],
       },
       tasks: new Map(),
     });
@@ -49,7 +65,13 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
     const mem = getMemoryHousehold(householdId);
     return {
       householdId,
-      profile: { ...mem.profile },
+      profile: {
+        ...mem.profile,
+        places:
+          mem.profile.places && mem.profile.places.length > 0
+            ? mem.profile.places
+            : [...DEFAULT_PLACES],
+      },
       tasks: Array.from(mem.tasks.values()),
     };
   }
@@ -66,7 +88,11 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
     const response = await docClient.send(command);
     const items = response.Items || [];
 
-    let profile: HouseholdProfile = { currentStreak: 0, bestStreak: 0 };
+    let profile: HouseholdProfile = {
+      currentStreak: 0,
+      bestStreak: 0,
+      places: [...DEFAULT_PLACES],
+    };
     const tasks: Task[] = [];
 
     for (const item of items) {
@@ -76,12 +102,17 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
           bestStreak: item.bestStreak ?? 0,
           streakLastUpdatedAt: item.streakLastUpdatedAt,
           updatedAt: item.updatedAt,
+          places:
+            item.places && Array.isArray(item.places) && item.places.length > 0
+              ? item.places
+              : [...DEFAULT_PLACES],
         };
       } else if (typeof item.SK === 'string' && item.SK.startsWith('TASK#')) {
         tasks.push({
           id: item.id,
           title: item.title,
           level: item.level as EffortLevel,
+          place: item.place || 'Geral',
           isCompleted: Boolean(item.isCompleted),
           recurrenceInterval: item.recurrenceInterval,
           recurrenceUnit: item.recurrenceUnit as RecurrenceUnit,
@@ -90,6 +121,10 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
           createdAt: item.createdAt || Date.now(),
         });
       }
+    }
+
+    if (!profile.places || profile.places.length === 0) {
+      profile.places = [...DEFAULT_PLACES];
     }
 
     return { householdId, profile, tasks };
@@ -101,7 +136,13 @@ export async function getHouseholdData(householdId: string): Promise<HouseholdDa
     const mem = getMemoryHousehold(householdId);
     return {
       householdId,
-      profile: { ...mem.profile },
+      profile: {
+        ...mem.profile,
+        places:
+          mem.profile.places && mem.profile.places.length > 0
+            ? mem.profile.places
+            : [...DEFAULT_PLACES],
+      },
       tasks: Array.from(mem.tasks.values()),
     };
   }
@@ -118,12 +159,16 @@ export async function createTask(
   const task: Task = {
     ...taskInput,
     id: taskInput.id || crypto.randomUUID(),
+    place: taskInput.place?.trim() || 'Geral',
     createdAt: taskInput.createdAt || now,
   };
 
   if (!isDynamoConfigured) {
     const mem = getMemoryHousehold(householdId);
     mem.tasks.set(task.id, task);
+    if (!mem.profile.places?.some((p) => p.toLowerCase() === task.place.toLowerCase())) {
+      mem.profile.places = [...(mem.profile.places || DEFAULT_PLACES), task.place];
+    }
     return task;
   }
 
@@ -137,6 +182,7 @@ export async function createTask(
         id: task.id,
         title: task.title,
         level: task.level,
+        place: task.place,
         isCompleted: task.isCompleted ?? false,
         recurrenceInterval: task.recurrenceInterval,
         recurrenceUnit: task.recurrenceUnit,
@@ -148,6 +194,10 @@ export async function createTask(
     });
 
     await docClient.send(command);
+
+    // Auto-register place if new
+    await addHouseholdPlace(householdId, task.place);
+
     return task;
   } catch (error) {
     console.error('[DynamoDB] Error saving task:', error);
@@ -178,6 +228,7 @@ export async function updateTask(
     ...existing,
     ...updates,
     id: taskId,
+    place: updates.place !== undefined ? updates.place.trim() : existing.place || 'Geral',
   };
 
   const now = Date.now();
@@ -185,6 +236,9 @@ export async function updateTask(
   if (!isDynamoConfigured) {
     const mem = getMemoryHousehold(householdId);
     mem.tasks.set(taskId, updated);
+    if (!mem.profile.places?.some((p) => p.toLowerCase() === updated.place.toLowerCase())) {
+      mem.profile.places = [...(mem.profile.places || DEFAULT_PLACES), updated.place];
+    }
     return updated;
   }
 
@@ -198,6 +252,7 @@ export async function updateTask(
         id: taskId,
         title: updated.title,
         level: updated.level,
+        place: updated.place,
         isCompleted: updated.isCompleted ?? false,
         recurrenceInterval: updated.recurrenceInterval,
         recurrenceUnit: updated.recurrenceUnit,
@@ -209,6 +264,10 @@ export async function updateTask(
     });
 
     await docClient.send(command);
+
+    // Auto-register place if new
+    await addHouseholdPlace(householdId, updated.place);
+
     return updated;
   } catch (error) {
     console.error('[DynamoDB] Error updating task:', error);
@@ -374,6 +433,7 @@ export async function saveHouseholdProfile(
         currentStreak: profile.currentStreak,
         bestStreak: profile.bestStreak,
         streakLastUpdatedAt: profile.streakLastUpdatedAt,
+        places: profile.places && profile.places.length > 0 ? profile.places : [...DEFAULT_PLACES],
         updatedAt: now,
       },
     });
@@ -387,6 +447,95 @@ export async function saveHouseholdProfile(
     const mem = getMemoryHousehold(householdId);
     mem.profile = { ...profile };
   }
+}
+
+/**
+ * Adds a new place to the household places list.
+ */
+export async function addHouseholdPlace(householdId: string, placeName: string): Promise<string[]> {
+  const trimmed = placeName.trim();
+  if (!trimmed) return [];
+
+  const { profile } = await getHouseholdData(householdId);
+  const currentPlaces =
+    profile.places && profile.places.length > 0 ? [...profile.places] : [...DEFAULT_PLACES];
+
+  if (!currentPlaces.some((p) => p.toLowerCase() === trimmed.toLowerCase())) {
+    currentPlaces.push(trimmed);
+    await saveHouseholdProfile(householdId, { ...profile, places: currentPlaces });
+  }
+
+  return currentPlaces;
+}
+
+/**
+ * Renames an existing place in the household places list and updates all tasks that use it.
+ */
+export async function renameHouseholdPlace(
+  householdId: string,
+  oldPlaceName: string,
+  newPlaceName: string,
+): Promise<void> {
+  const oldTrimmed = oldPlaceName.trim();
+  const newTrimmed = newPlaceName.trim();
+  if (!oldTrimmed || !newTrimmed || oldTrimmed === newTrimmed) return;
+
+  const { profile, tasks } = await getHouseholdData(householdId);
+  const currentPlaces =
+    profile.places && profile.places.length > 0 ? [...profile.places] : [...DEFAULT_PLACES];
+
+  const updatedPlaces = currentPlaces.map((p) =>
+    p.toLowerCase() === oldTrimmed.toLowerCase() ? newTrimmed : p,
+  );
+
+  await saveHouseholdProfile(householdId, { ...profile, places: updatedPlaces });
+
+  // Update tasks that were assigned to oldPlaceName
+  for (const t of tasks) {
+    if (t.place && t.place.toLowerCase() === oldTrimmed.toLowerCase()) {
+      await updateTask(householdId, t.id, { place: newTrimmed });
+    }
+  }
+}
+
+/**
+ * Deletes a place from the household places list.
+ * If reassignTo is provided, reassigns tasks using this place to reassignTo.
+ * Otherwise, fails if tasks are assigned to it.
+ */
+export async function deleteHouseholdPlace(
+  householdId: string,
+  placeName: string,
+  reassignTo?: string,
+): Promise<{ success: boolean; error?: string; count?: number }> {
+  const trimmed = placeName.trim();
+  const { profile, tasks } = await getHouseholdData(householdId);
+
+  // Check if any task is using this place
+  const tasksUsingPlace = tasks.filter(
+    (t) => t.place && t.place.toLowerCase() === trimmed.toLowerCase(),
+  );
+
+  if (tasksUsingPlace.length > 0) {
+    if (!reassignTo) {
+      return {
+        success: false,
+        error: 'place_in_use',
+        count: tasksUsingPlace.length,
+      };
+    }
+    const targetPlace = reassignTo.trim();
+    for (const t of tasksUsingPlace) {
+      await updateTask(householdId, t.id, { place: targetPlace });
+    }
+  }
+
+  const currentPlaces =
+    profile.places && profile.places.length > 0 ? [...profile.places] : [...DEFAULT_PLACES];
+  const updatedPlaces = currentPlaces.filter((p) => p.toLowerCase() !== trimmed.toLowerCase());
+
+  await saveHouseholdProfile(householdId, { ...profile, places: updatedPlaces });
+  return { success: true };
 }
 
 /**

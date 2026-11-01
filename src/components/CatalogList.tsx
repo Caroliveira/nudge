@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Filter, X } from 'lucide-react';
 import { Task, EffortLevel, RecurrenceUnit } from '../types';
 import { CatalogView, useCatalogFilter } from '../hooks/useCatalogFilter';
+import { useStore } from '../store/useStore';
 import TaskCatalogItem from './TaskCatalogItem';
 import CatalogEmptyState from './CatalogEmptyState';
 
@@ -31,20 +32,28 @@ const removeAccents = (value: string) =>
 const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDelete, onEdit }) => {
   const { t } = useTranslation();
   const { sortedTasks } = useCatalogFilter(tasks);
+  const places = useStore((state) => state.places);
+  const selectedPlaceFilter = useStore((state) => state.selectedPlaceFilter);
+  const setSelectedPlaceFilter = useStore((state) => state.setSelectedPlaceFilter);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>('ALL');
   const [effortFilter, setEffortFilter] = useState<EffortFilterValue>('ALL');
   const [recurrenceFilter, setRecurrenceFilter] = useState<RecurrenceFilterValue>('ALL');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterContainerRef = useRef<HTMLDivElement | null>(null);
+
   const selectedFilterCount =
     Number(statusFilter !== 'ALL') +
     Number(effortFilter !== 'ALL') +
-    Number(recurrenceFilter !== 'ALL');
+    Number(recurrenceFilter !== 'ALL') +
+    Number(!!selectedPlaceFilter);
+
   const clearAllFilters = () => {
     setStatusFilter('ALL');
     setEffortFilter('ALL');
     setRecurrenceFilter('ALL');
+    setSelectedPlaceFilter(null);
   };
 
   useEffect(() => {
@@ -85,10 +94,13 @@ const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDele
 
       const matchesEffort = effortFilter === 'ALL' || task.level === effortFilter;
       const matchesRecurrence = recurrenceFilter === 'ALL' || taskRecurrence === recurrenceFilter;
+      const matchesPlace =
+        !selectedPlaceFilter ||
+        (task.place && task.place.toLowerCase() === selectedPlaceFilter.toLowerCase());
 
-      return matchesSearch && matchesStatus && matchesEffort && matchesRecurrence;
+      return matchesSearch && matchesStatus && matchesEffort && matchesRecurrence && matchesPlace;
     });
-  }, [sortedTasks, searchQuery, statusFilter, effortFilter, recurrenceFilter]);
+  }, [sortedTasks, searchQuery, statusFilter, effortFilter, recurrenceFilter, selectedPlaceFilter]);
 
   if (tasks.length === 0) {
     return <CatalogEmptyState view={view} />;
@@ -175,6 +187,23 @@ const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDele
                   </option>
                 ))}
               </select>
+              {places.length > 0 && (
+                <select
+                  aria-label={t('catalog.filterPlace', 'Lugar')}
+                  value={selectedPlaceFilter || 'ALL'}
+                  onChange={(e) =>
+                    setSelectedPlaceFilter(e.target.value === 'ALL' ? null : e.target.value)
+                  }
+                  className="w-full px-3 py-2 bg-warm text-text rounded-md border border-soft/30 focus:outline-none focus:border-accent appearance-none cursor-pointer text-sm"
+                >
+                  <option value="ALL">{t('catalog.filterAllPlaces', 'Todos os lugares')}</option>
+                  {places.map((place) => (
+                    <option key={place} value={place}>
+                      {place}
+                    </option>
+                  ))}
+                </select>
+              )}
               {selectedFilterCount > 0 && (
                 <button
                   type="button"
@@ -188,6 +217,39 @@ const CatalogList: React.FC<CatalogListProps> = ({ tasks, view, onToggle, onDele
           )}
         </div>
       </div>
+
+      {places.length > 0 && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none no-scrollbar -mx-1 px-1">
+          <button
+            type="button"
+            onClick={() => setSelectedPlaceFilter(null)}
+            className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
+              !selectedPlaceFilter
+                ? 'bg-accent text-warm shadow-sm'
+                : 'bg-surface text-soft hover:text-text hover:bg-surface/80 border border-surface'
+            }`}
+          >
+            {t('catalog.allPlaces', 'Todos')}
+          </button>
+          {places.map((place) => {
+            const isSelected = selectedPlaceFilter?.toLowerCase() === place.toLowerCase();
+            return (
+              <button
+                key={place}
+                type="button"
+                onClick={() => setSelectedPlaceFilter(isSelected ? null : place)}
+                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all ${
+                  isSelected
+                    ? 'bg-accent text-warm shadow-sm'
+                    : 'bg-surface text-soft hover:text-text hover:bg-surface/80 border border-surface'
+                }`}
+              >
+                {place}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <ul className="space-y-3 pb-8 relative mt-2">
         <AnimatePresence initial={false} mode="popLayout">

@@ -11,6 +11,7 @@ export interface Task {
   id: string;
   title: string;
   level: EffortLevel;
+  place: string;
   isCompleted?: boolean;
   recurrenceInterval?: number;
   recurrenceUnit?: RecurrenceUnit;
@@ -22,6 +23,8 @@ export interface Task {
 export interface StoreState {
   // State
   tasks: Task[];
+  places: string[];
+  selectedPlaceFilter: string | null;
   currentTask: Task | null;
   selectedLevel: EffortLevel | null;
   currentStreak: number;
@@ -33,11 +36,18 @@ export interface StoreState {
   // Actions
   initializeFromSSR: (
     tasks: Task[],
-    profile?: { currentStreak: number; bestStreak: number; streakLastUpdatedAt?: number },
+    profile?: {
+      currentStreak: number;
+      bestStreak: number;
+      streakLastUpdatedAt?: number;
+      places?: string[];
+    },
     userEmail?: string,
     userName?: string,
   ) => void;
   setTasks: (tasks: Task[]) => void;
+  setPlaces: (places: string[]) => void;
+  setSelectedPlaceFilter: (place: string | null) => void;
   setCurrentTask: (task: Task | null) => void;
   setSelectedLevel: (level: EffortLevel | null) => void;
   setBestStreak: (bestStreak: number) => void;
@@ -47,6 +57,12 @@ export interface StoreState {
   addTask: (task: Task) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id'>>) => void;
   deleteTask: (id: string) => void;
+  addPlace: (place: string) => Promise<void>;
+  renamePlace: (oldPlace: string, newPlace: string) => Promise<void>;
+  deletePlace: (
+    place: string,
+    reassignTo?: string,
+  ) => Promise<{ success: boolean; error?: string; count?: number }>;
   refreshRecurringTasks: () => void;
   resetStore: () => void;
 }
@@ -54,6 +70,7 @@ export interface StoreState {
 export interface CsvTaskRow {
   title: string;
   effort: string;
+  place?: string;
   interval: string;
   unit: string;
   iscompleted?: string;

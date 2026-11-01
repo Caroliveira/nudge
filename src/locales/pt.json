@@ -41,7 +41,10 @@
     "clearAllFilters": "Limpar todos os filtros",
     "search": "Buscar tarefas...",
     "emptySearch": "Nenhuma tarefa encontrada com esses filtros.",
-    "addPersonalTask": "Adicionar uma tarefa pessoal"
+    "addPersonalTask": "Adicionar uma tarefa pessoal",
+    "allPlaces": "Todos",
+    "filterPlace": "Lugar",
+    "filterAllPlaces": "Todos os lugares"
   },
   "task": {
     "markComplete": "Marcar como concluída",
@@ -105,6 +108,10 @@
   "form": {
     "title": "Título",
     "placeholder": "O que precisa ser feito?",
+    "place": "Lugar / Cômodo",
+    "placePlaceholder": "Buscar ou criar lugar...",
+    "createPlace": "+ Criar novo lugar: \"{{query}}\"",
+    "placeRequired": "O lugar da tarefa é obrigatório.",
     "effort": "Nível de Esforço",
     "recurrence": "Recorrência",
     "update": "Atualizar Tarefa",
@@ -200,16 +207,43 @@
   "settings": {
     "title": "Configurações",
     "back": "Voltar",
+    "csv": {
+      "title": "Backup & CSV",
+      "subtitle": "Importe ou exporte suas tarefas em formato CSV",
+      "badge": "Importar / Exportar"
+    },
     "language": {
       "title": "Idioma",
+      "subtitle": "Escolha o idioma de exibição do aplicativo",
       "current": "Atual"
+    },
+    "account": {
+      "title": "Conta",
+      "subtitle": "Gerencie seus dados e preferências de perfil"
     },
     "appearance": {
       "title": "Aparência"
     },
     "comingSoon": "Em breve...",
-    "csv": {
-      "title": "CSV"
+    "places": {
+      "title": "Lugares da Casa",
+      "subtitle": "Gerencie os cômodos e categorias das suas tarefas",
+      "newPlaceholder": "Novo lugar (ex: Varanda, Garagem...)",
+      "addButton": "Adicionar",
+      "emptyError": "Digite um nome para o lugar.",
+      "duplicateError": "Este lugar já existe.",
+      "rename": "Renomear",
+      "delete": "Excluir",
+      "singular": "lugar",
+      "plural": "lugares",
+      "taskCount": "{{count}} tarefa",
+      "taskCount_other": "{{count}} tarefas",
+      "deleteConfirmTitle": "Excluir {{place}}?",
+      "deleteWarningTasks": "Existem {{count}} tarefas neste lugar. Escolha para onde transferi-las:",
+      "deleteConfirmMessage": "Nenhuma tarefa vinculada. O lugar será removido da lista.",
+      "confirmMoveAndDelete": "Transferir e Excluir",
+      "confirmDelete": "Excluir",
+      "deleteFailed": "Não foi possível excluir o lugar."
     }
   },
   "auth": {
@@ -271,5 +305,10 @@
     "deleteAccountConfirmButton": "Sim, excluir minha conta",
     "deletingAccount": "Excluindo...",
     "cancel": "Cancelar"
+  },
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "error": "Ocorreu um erro"
   }
 }

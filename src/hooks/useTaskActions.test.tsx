@@ -17,6 +17,7 @@ describe('useTaskActions', () => {
     {
       id: '1',
       title: 'Task 1',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       createdAt: Date.now(),
@@ -24,6 +25,7 @@ describe('useTaskActions', () => {
     {
       id: '2',
       title: 'Task 2',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       createdAt: Date.now(),
@@ -31,6 +33,7 @@ describe('useTaskActions', () => {
     {
       id: '3',
       title: 'Task 3',
+      place: 'Geral',
       level: EffortLevel.HIGH,
       recurrenceUnit: 'none',
       createdAt: Date.now(),

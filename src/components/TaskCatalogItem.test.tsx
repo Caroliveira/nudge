@@ -55,6 +55,7 @@ describe('TaskCatalogItem', () => {
   const mockTask: Task = {
     id: '1',
     title: 'Test Task',
+    place: 'Cozinha',
     level: EffortLevel.LOW,
     isCompleted: false,
     recurrenceUnit: 'none',
@@ -92,6 +93,7 @@ describe('TaskCatalogItem', () => {
     );
 
     expect(screen.getByText('Test Task')).toBeInTheDocument();
+    expect(screen.getByText('Cozinha')).toBeInTheDocument();
     expect(screen.getByText('Low Effort')).toBeInTheDocument();
     expect(screen.getByLabelText('Mark as complete')).toBeInTheDocument();
   });

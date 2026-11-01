@@ -25,6 +25,7 @@ describe('csvUtils', () => {
       {
         id: '1',
         title: 'Existing Task',
+        place: 'Geral',
         level: EffortLevel.LOW,
         recurrenceUnit: 'none',
         createdAt: Date.now(),
@@ -33,7 +34,7 @@ describe('csvUtils', () => {
 
     it('processes valid tasks correctly', () => {
       const data = [
-        { title: 'New Task', effort: 'Low', interval: '1', unit: 'days' },
+        { title: 'New Task', effort: 'Low', interval: '1', unit: 'days', place: 'Cozinha' },
         { title: 'Hard Task', effort: 'High', interval: '2', unit: 'weeks' },
       ];
 
@@ -44,12 +45,14 @@ describe('csvUtils', () => {
       expect(result.tasksToAdd).toHaveLength(2);
       expect(result.tasksToAdd[0]).toMatchObject({
         title: 'New Task',
+        place: 'Cozinha',
         level: EffortLevel.LOW,
         recurrenceUnit: 'days',
         recurrenceInterval: 1,
       });
       expect(result.tasksToAdd[1]).toMatchObject({
         title: 'Hard Task',
+        place: 'Geral',
         level: EffortLevel.HIGH,
         recurrenceUnit: 'weeks',
         recurrenceInterval: 2,

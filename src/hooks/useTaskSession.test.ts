@@ -15,6 +15,7 @@ describe('useTaskSession', () => {
     {
       id: '1',
       title: 'Task 1',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
@@ -23,6 +24,7 @@ describe('useTaskSession', () => {
     {
       id: '2',
       title: 'Task 2',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
@@ -31,6 +33,7 @@ describe('useTaskSession', () => {
     {
       id: '3',
       title: 'Task 3',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',

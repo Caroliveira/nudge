@@ -8,6 +8,7 @@ describe('useCatalogFilter', () => {
     {
       id: '1',
       title: 'One-time Incomplete',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',
@@ -16,6 +17,7 @@ describe('useCatalogFilter', () => {
     {
       id: '2',
       title: 'One-time Completed',
+      place: 'Geral',
       level: EffortLevel.MEDIUM,
       isCompleted: true,
       recurrenceUnit: 'none',
@@ -24,6 +26,7 @@ describe('useCatalogFilter', () => {
     {
       id: '3',
       title: 'Recurring Incomplete',
+      place: 'Geral',
       level: EffortLevel.HIGH,
       isCompleted: false,
       recurrenceUnit: 'days',
@@ -33,6 +36,7 @@ describe('useCatalogFilter', () => {
     {
       id: '4',
       title: 'Recurring Completed',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       recurrenceUnit: 'weeks',
@@ -42,6 +46,7 @@ describe('useCatalogFilter', () => {
     {
       id: '5',
       title: 'A Task', // For sorting check
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: false,
       recurrenceUnit: 'none',

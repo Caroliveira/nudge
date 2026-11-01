@@ -12,6 +12,7 @@ describe('useTaskAvailability', () => {
     {
       id: '1',
       title: 'Task 1',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
@@ -20,6 +21,7 @@ describe('useTaskAvailability', () => {
     {
       id: '2',
       title: 'Task 2',
+      place: 'Geral',
       level: EffortLevel.MEDIUM,
       recurrenceUnit: 'days',
       recurrenceInterval: 1,
@@ -28,6 +30,7 @@ describe('useTaskAvailability', () => {
     {
       id: '3',
       title: 'Task 3',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       recurrenceUnit: 'days',

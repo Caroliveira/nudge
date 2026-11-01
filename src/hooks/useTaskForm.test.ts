@@ -19,6 +19,7 @@ describe('useTaskForm', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
 
     expect(result.current.title).toBe('');
+    expect(result.current.place).toBe('');
     expect(result.current.level).toBe(EffortLevel.LOW);
     expect(result.current.recurrenceUnit).toBe('none');
     expect(result.current.recurrenceInterval).toBe(1);
@@ -27,6 +28,7 @@ describe('useTaskForm', () => {
   it('initializes with provided values', () => {
     const initialValues = {
       title: 'Test Task',
+      place: 'Cozinha',
       level: EffortLevel.HIGH,
       recurrenceUnit: 'days' as const,
       recurrenceInterval: 5,
@@ -34,6 +36,7 @@ describe('useTaskForm', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit, initialValues }));
 
     expect(result.current.title).toBe('Test Task');
+    expect(result.current.place).toBe('Cozinha');
     expect(result.current.level).toBe(EffortLevel.HIGH);
     expect(result.current.recurrenceUnit).toBe('days');
     expect(result.current.recurrenceInterval).toBe(5);
@@ -52,11 +55,25 @@ describe('useTaskForm', () => {
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
+  it('validates required place', () => {
+    const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
+
+    act(() => {
+      result.current.updateTitle('Valid Title');
+      const e = { preventDefault: vi.fn() } as unknown as React.FormEvent;
+      result.current.handleSubmit(e);
+    });
+
+    expect(result.current.errors.place).toBe(true);
+    expect(mockOnSubmit).not.toHaveBeenCalled();
+  });
+
   it('validates recurrence interval when unit is not none', () => {
     const { result } = renderHook(() => useTaskForm({ onSubmit: mockOnSubmit }));
 
     act(() => {
       result.current.updateTitle('Valid Title');
+      result.current.updatePlace('Cozinha');
       result.current.updateRecurrenceUnit('days');
       result.current.updateRecurrenceInterval(''); // Invalid
     });
@@ -75,6 +92,7 @@ describe('useTaskForm', () => {
 
     act(() => {
       result.current.updateTitle('New Task');
+      result.current.updatePlace('Cozinha');
       result.current.updateLevel(EffortLevel.MEDIUM);
     });
 
@@ -93,6 +111,7 @@ describe('useTaskForm', () => {
 
     expect(mockOnSubmit).toHaveBeenCalledWith({
       title: 'New Task',
+      place: 'Cozinha',
       level: EffortLevel.MEDIUM,
       recurrenceUnit: 'none',
       recurrenceInterval: undefined,
@@ -101,6 +120,7 @@ describe('useTaskForm', () => {
 
     // Form should be reset
     expect(result.current.title).toBe('');
+    expect(result.current.place).toBe('');
     expect(result.current.isSuccess).toBe(false);
   });
 
@@ -113,11 +133,14 @@ describe('useTaskForm', () => {
       result.current.handleSubmit(e);
     });
     expect(result.current.errors.title).toBe(true);
+    expect(result.current.errors.place).toBe(true);
 
     // Update field
     act(() => {
       result.current.updateTitle('A');
+      result.current.updatePlace('B');
     });
     expect(result.current.errors.title).toBeUndefined();
+    expect(result.current.errors.place).toBeUndefined();
   });
 });

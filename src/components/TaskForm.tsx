@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
-import { Check } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect } from 'react';
+import { Check, Plus, MapPin, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Task, EffortLevel, RecurrenceUnit } from '../types';
 import { useTaskForm } from '../hooks/useTaskForm';
+import { useStore } from '../store/useStore';
 
 interface TaskFormProps {
   onSubmit: (task: Omit<Task, 'id'>) => void;
@@ -20,11 +21,16 @@ const shakeAnimation = {
 
 const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }) => {
   const { t } = useTranslation();
+  const places = useStore((state) => state.places);
+  const addPlace = useStore((state) => state.addPlace);
+
   const {
     title,
     updateTitle,
     level,
     updateLevel,
+    place,
+    updatePlace,
     recurrenceInterval,
     updateRecurrenceInterval,
     recurrenceUnit,
@@ -33,6 +39,38 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
     isSuccess,
     handleSubmit,
   } = useTaskForm({ onSubmit, initialValues });
+
+  // Place search and autocomplete state
+  const [isPlaceDropdownOpen, setIsPlaceDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsPlaceDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredPlaces = places.filter((p) => p.toLowerCase().includes(place.trim().toLowerCase()));
+
+  const isExactMatch = places.some((p) => p.toLowerCase() === place.trim().toLowerCase());
+
+  const handleSelectPlace = (selectedPlace: string) => {
+    updatePlace(selectedPlace);
+    setIsPlaceDropdownOpen(false);
+  };
+
+  const handleCreatePlace = async (newPlaceName: string) => {
+    const trimmed = newPlaceName.trim();
+    if (!trimmed) return;
+    await addPlace(trimmed);
+    updatePlace(trimmed);
+    setIsPlaceDropdownOpen(false);
+  };
 
   if (isSuccess) {
     return (
@@ -58,6 +96,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
       className="bg-surface p-6 rounded-2xl space-y-6 fade-in border border-soft/20 shadow-sm"
       aria-label={initialValues ? t('form.update') : t('catalog.addPersonalTask')}
     >
+      {/* Title */}
       <div>
         <label
           htmlFor="task-title"
@@ -79,7 +118,126 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
         />
       </div>
 
+      {/* Place / Category (Searchable & Creatable) */}
+      <div className="relative" ref={dropdownRef}>
+        <div className="flex items-center justify-between mb-2">
+          <label
+            htmlFor="task-place"
+            className="block text-xs uppercase tracking-widest text-soft font-bold"
+          >
+            {t('form.place', 'Lugar da casa')} <span className="text-red-500">*</span>
+          </label>
+          {place && (
+            <span className="text-xs text-soft">
+              {t('form.selectedPlace', 'Selecionado')}:{' '}
+              <strong className="text-accent">{place}</strong>
+            </span>
+          )}
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
+            <MapPin className="w-4 h-4" />
+          </div>
+          <motion.input
+            id="task-place"
+            type="text"
+            animate={errors.place ? shakeAnimation : {}}
+            className={`w-full pl-10 pr-10 bg-warm border-none rounded-lg p-3 text-text focus:ring-2 outline-none text-base ${
+              errors.place ? 'ring-2 ring-red-700' : 'focus:ring-accent'
+            }`}
+            value={place}
+            onFocus={() => setIsPlaceDropdownOpen(true)}
+            onChange={(e) => {
+              updatePlace(e.target.value);
+              setIsPlaceDropdownOpen(true);
+            }}
+            placeholder={t(
+              'form.placePlaceholder',
+              'Digite ou escolha um lugar (ex: Cozinha, Quarto...)',
+            )}
+            aria-invalid={!!errors.place}
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            onClick={() => setIsPlaceDropdownOpen(!isPlaceDropdownOpen)}
+            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-soft hover:text-text transition-colors"
+            aria-label="Abrir opções de lugares"
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${isPlaceDropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
+
+        {/* Autocomplete Dropdown */}
+        <AnimatePresence>
+          {isPlaceDropdownOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute z-30 mt-1.5 w-full bg-surface border border-surface rounded-xl shadow-lg max-h-56 overflow-y-auto py-1 divide-y divide-surface/40 backdrop-blur-md"
+            >
+              {/* Option to create new place if not an exact match */}
+              {place.trim() && !isExactMatch && (
+                <div className="p-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCreatePlace(place.trim())}
+                    className="w-full text-left px-3 py-2 text-sm text-accent hover:bg-accent/10 rounded-lg flex items-center gap-2 font-medium transition-colors"
+                  >
+                    <Plus className="w-4 h-4 shrink-0" />
+                    <span>
+                      {t('form.createPlace', 'Criar novo lugar')}: &quot;
+                      <span className="font-semibold">{place.trim()}</span>&quot;
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Filtered Existing Places */}
+              <div className="p-1">
+                {filteredPlaces.length > 0
+                  ? filteredPlaces.map((p) => {
+                      const isSelected = place.toLowerCase() === p.toLowerCase();
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => handleSelectPlace(p)}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-lg flex items-center justify-between transition-colors ${
+                            isSelected
+                              ? 'bg-accent/15 text-accent font-medium'
+                              : 'text-text hover:bg-warm/60'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5 text-soft" />
+                            <span>{p}</span>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-accent" />}
+                        </button>
+                      );
+                    })
+                  : !place.trim() && (
+                      <p className="px-3 py-2 text-xs text-soft">
+                        {t(
+                          'form.noPlacesYet',
+                          'Nenhum lugar cadastrado ainda. Digite um nome acima!',
+                        )}
+                      </p>
+                    )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Effort Level */}
         <div>
           <label
             htmlFor="task-effort"
@@ -100,6 +258,8 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
             ))}
           </select>
         </div>
+
+        {/* Recurrence */}
         <div>
           <label
             htmlFor="task-recurrence-unit"
@@ -149,6 +309,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
         </div>
       </div>
 
+      {/* Buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button
           type="submit"

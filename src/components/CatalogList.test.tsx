@@ -29,8 +29,9 @@ describe('CatalogList', () => {
   const openFilters = () => {
     fireEvent.click(screen.getByLabelText(/Open filters|catalog\.openFilters/));
   };
-  const createTasks = (items: (Omit<Task, 'createdAt'> & { createdAt?: number })[]): Task[] =>
-    items.map((t) => ({ createdAt: 1000, ...t }));
+  const createTasks = (
+    items: (Omit<Task, 'createdAt' | 'place'> & { createdAt?: number; place?: string })[],
+  ): Task[] => items.map((t) => ({ createdAt: 1000, place: 'Geral', ...t }));
 
   it('renders empty state when no tasks', () => {
     render(<CatalogList {...mockProps} />);

@@ -9,6 +9,7 @@ const sampleTasks: Task[] = [
   {
     id: 'task-1',
     title: 'Clean kitchen',
+    place: 'Cozinha',
     level: EffortLevel.MEDIUM,
     isCompleted: false,
     recurrenceUnit: 'none',
@@ -20,6 +21,7 @@ describe('StoreInitializer', () => {
   beforeEach(() => {
     useStore.setState({
       tasks: [],
+      places: [],
       currentStreak: 0,
       bestStreak: 0,
       streakLastUpdatedAt: undefined,
@@ -34,6 +36,7 @@ describe('StoreInitializer', () => {
           currentStreak: 3,
           bestStreak: 7,
           streakLastUpdatedAt: 123456789,
+          places: ['Cozinha', 'Quarto'],
         }}
         userEmail="test@example.com"
         userName="Test User"
@@ -43,6 +46,8 @@ describe('StoreInitializer', () => {
     const state = useStore.getState();
     expect(state.tasks).toHaveLength(1);
     expect(state.tasks[0].title).toBe('Clean kitchen');
+    expect(state.tasks[0].place).toBe('Cozinha');
+    expect(state.places).toEqual(['Cozinha', 'Quarto']);
     expect(state.currentStreak).toBe(3);
     expect(state.bestStreak).toBe(7);
     expect(state.userEmail).toBe('test@example.com');
@@ -61,6 +66,7 @@ describe('StoreInitializer', () => {
       {
         id: 'task-2',
         title: 'Walk dog',
+        place: 'Pets',
         level: EffortLevel.LOW,
         isCompleted: true,
         recurrenceUnit: 'days',

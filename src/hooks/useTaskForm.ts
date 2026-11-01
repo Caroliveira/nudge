@@ -9,6 +9,7 @@ interface UseTaskFormProps {
 export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
   const [title, setTitle] = useState(initialValues?.title || '');
   const [level, setLevel] = useState<EffortLevel>(initialValues?.level || EffortLevel.LOW);
+  const [place, setPlace] = useState(initialValues?.place || '');
   const [recurrenceInterval, setRecurrenceInterval] = useState<number | ''>(
     initialValues?.recurrenceInterval || 1,
   );
@@ -24,6 +25,17 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
       setErrors((prev) => {
         const next = { ...prev };
         delete next.title;
+        return next;
+      });
+    }
+  };
+
+  const updatePlace = (value: string) => {
+    setPlace(value);
+    if (errors.place) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.place;
         return next;
       });
     }
@@ -50,6 +62,10 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
       newErrors.title = true;
     }
 
+    if (!place.trim()) {
+      newErrors.place = true;
+    }
+
     if (recurrenceUnit !== 'none') {
       if (recurrenceInterval === '' || recurrenceInterval < 1) {
         newErrors.recurrenceInterval = true;
@@ -65,8 +81,9 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
 
     setTimeout(() => {
       onSubmit({
-        title,
+        title: title.trim(),
         level,
+        place: place.trim(),
         recurrenceInterval:
           recurrenceUnit !== 'none' && recurrenceInterval !== ''
             ? Number(recurrenceInterval)
@@ -77,6 +94,7 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
 
       // Reset form
       setTitle('');
+      setPlace('');
       setRecurrenceInterval(1);
       setRecurrenceUnit('none');
       setErrors({});
@@ -89,6 +107,8 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
     updateTitle,
     level,
     updateLevel: setLevel,
+    place,
+    updatePlace,
     recurrenceInterval,
     updateRecurrenceInterval,
     recurrenceUnit,

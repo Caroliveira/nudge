@@ -64,6 +64,7 @@ describe('useStore', () => {
     const taskData = {
       id: 'test-uuid',
       title: 'New Task',
+      place: 'Geral',
       level: EffortLevel.MEDIUM,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
@@ -81,6 +82,7 @@ describe('useStore', () => {
     const taskData = {
       id: 'test-uuid',
       title: 'Task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
@@ -98,6 +100,7 @@ describe('useStore', () => {
     const taskData = {
       id: 'test-uuid',
       title: 'Task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
@@ -115,6 +118,7 @@ describe('useStore', () => {
     const taskData = {
       id: 'test-uuid',
       title: 'Task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none' as const,
       recurrenceInterval: 1,
@@ -135,6 +139,7 @@ describe('useStore', () => {
     const task: Task = {
       id: 'recurring-task',
       title: 'Recurring',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       recurrenceUnit: 'days',
@@ -158,6 +163,7 @@ describe('useStore', () => {
     const task: Task = {
       id: 'recurring-task',
       title: 'Recurring',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       recurrenceUnit: 'days',

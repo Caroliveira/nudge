@@ -31,6 +31,7 @@ const CsvExport: React.FC = () => {
         id: task.id,
         title: task.title,
         effort: task.level.toLowerCase(),
+        place: task.place || 'Geral',
         interval: task.recurrenceInterval || 1,
         unit: task.recurrenceUnit || 'none',
         isCompleted: task.isCompleted ?? false,

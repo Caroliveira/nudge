@@ -15,6 +15,7 @@ describe('taskUtils', () => {
   const mockTask: Task = {
     id: '1',
     title: 'Test Task',
+    place: 'Geral',
     level: EffortLevel.LOW,
     recurrenceUnit: 'days',
     recurrenceInterval: 1,

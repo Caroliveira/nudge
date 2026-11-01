@@ -41,7 +41,10 @@
     "clearAllFilters": "Clear all filters",
     "search": "Search tasks...",
     "emptySearch": "No tasks found matching your filters.",
-    "addPersonalTask": "Add a personal task"
+    "addPersonalTask": "Add a personal task",
+    "allPlaces": "All",
+    "filterPlace": "Place",
+    "filterAllPlaces": "All places"
   },
   "task": {
     "markComplete": "Mark as complete",
@@ -105,6 +108,10 @@
   "form": {
     "title": "Title",
     "placeholder": "What needs doing?",
+    "place": "Place / Room",
+    "placePlaceholder": "Search or create place...",
+    "createPlace": "+ Create new place: \"{{query}}\"",
+    "placeRequired": "Task place is required.",
     "effort": "Effort Level",
     "recurrence": "Recurrence",
     "update": "Update Task",
@@ -201,16 +208,43 @@
     "title": "Settings",
     "back": "Back",
     "csv": {
-      "title": "CSV"
+      "title": "Backup & CSV",
+      "subtitle": "Import or export your tasks in CSV format",
+      "badge": "Import / Export"
     },
     "language": {
       "title": "Language",
+      "subtitle": "Choose the display language for the application",
       "current": "Current"
+    },
+    "account": {
+      "title": "Account",
+      "subtitle": "Manage your profile details and preferences"
     },
     "appearance": {
       "title": "Appearance"
     },
-    "comingSoon": "Coming soon..."
+    "comingSoon": "Coming soon...",
+    "places": {
+      "title": "House Places",
+      "subtitle": "Manage rooms and categories for your tasks",
+      "newPlaceholder": "New place (e.g. Balcony, Garage...)",
+      "addButton": "Add",
+      "emptyError": "Please enter a place name.",
+      "duplicateError": "This place already exists.",
+      "rename": "Rename",
+      "delete": "Delete",
+      "singular": "place",
+      "plural": "places",
+      "taskCount": "{{count}} task",
+      "taskCount_other": "{{count}} tasks",
+      "deleteConfirmTitle": "Delete {{place}}?",
+      "deleteWarningTasks": "There are {{count}} tasks assigned to this place. Choose where to transfer them:",
+      "deleteConfirmMessage": "No tasks assigned. The place will be removed from your list.",
+      "confirmMoveAndDelete": "Transfer & Delete",
+      "confirmDelete": "Delete",
+      "deleteFailed": "Failed to delete place."
+    }
   },
   "auth": {
     "title": "Nudge",
@@ -271,5 +305,10 @@
     "deleteAccountConfirmButton": "Yes, delete my account",
     "deletingAccount": "Deleting...",
     "cancel": "Cancel"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "error": "An error occurred"
   }
 }

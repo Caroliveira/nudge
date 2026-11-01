@@ -62,6 +62,7 @@ export const processImportedTasks = (
       id: crypto.randomUUID(),
       title,
       level,
+      place: taskData.place?.trim() || 'Geral',
       isCompleted: parseBoolean(taskData.iscompleted),
       recurrenceInterval: unit !== 'none' ? interval : undefined,
       recurrenceUnit: unit,

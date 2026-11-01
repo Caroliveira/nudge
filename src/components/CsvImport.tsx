@@ -75,7 +75,7 @@ const CsvImport: React.FC = () => {
   };
 
   const downloadTemplate = () => {
-    const csvContent = `data:text/csv;charset=utf-8,title,effort,interval,unit\n${t('import.example1')},low,1,days\n${t('import.example2')},high,1,weeks`;
+    const csvContent = `data:text/csv;charset=utf-8,title,effort,interval,unit,place\n${t('import.example1')},low,1,days,Cozinha\n${t('import.example2')},high,1,weeks,Sala`;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');

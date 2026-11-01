@@ -29,6 +29,7 @@ describe('actions.ts', () => {
   it('creates a task and revalidates paths', async () => {
     const task = await createTaskAction({
       title: 'Action Task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       recurrenceInterval: 1,
@@ -36,23 +37,27 @@ describe('actions.ts', () => {
 
     expect(task.id).toBeDefined();
     expect(task.title).toBe('Action Task');
+    expect(task.place).toBe('Geral');
   });
 
   it('updates a task and returns the updated task', async () => {
     const task = await createTaskAction({
       title: 'Task to update',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       recurrenceInterval: 1,
     });
 
-    const updated = await updateTaskAction(task.id, { title: 'Updated Title' });
+    const updated = await updateTaskAction(task.id, { title: 'Updated Title', place: 'Sala' });
     expect(updated?.title).toBe('Updated Title');
+    expect(updated?.place).toBe('Sala');
   });
 
   it('deletes a task', async () => {
     const task = await createTaskAction({
       title: 'Task to delete',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       recurrenceInterval: 1,
@@ -81,6 +86,7 @@ describe('actions.ts', () => {
   it('toggles task completion and updates streak', async () => {
     const task = await createTaskAction({
       title: 'Toggle Task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       recurrenceInterval: 1,

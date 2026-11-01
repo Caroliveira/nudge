@@ -20,37 +20,44 @@ describe('DynamoDB / DB Layer', () => {
 
     const created = await createTask(id, {
       title: 'Water plants',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
     });
 
     expect(created.id).toBeDefined();
     expect(created.title).toBe('Water plants');
+    expect(created.place).toBe('Geral');
 
     const updated = await getHouseholdData(id);
     expect(updated.tasks).toHaveLength(1);
     expect(updated.tasks[0].title).toBe('Water plants');
+    expect(updated.tasks[0].place).toBe('Geral');
   });
 
   it('updates an existing task', async () => {
     const id = `test-house-${crypto.randomUUID()}`;
     const created = await createTask(id, {
       title: 'Old title',
+      place: 'Geral',
       level: EffortLevel.MEDIUM,
       recurrenceUnit: 'none',
     });
 
-    const updated = await updateTask(id, created.id, { title: 'New title' });
+    const updated = await updateTask(id, created.id, { title: 'New title', place: 'Cozinha' });
     expect(updated?.title).toBe('New title');
+    expect(updated?.place).toBe('Cozinha');
 
     const data = await getHouseholdData(id);
     expect(data.tasks[0].title).toBe('New title');
+    expect(data.tasks[0].place).toBe('Cozinha');
   });
 
   it('deletes a task', async () => {
     const id = `test-house-${crypto.randomUUID()}`;
     const created = await createTask(id, {
       title: 'Task to delete',
+      place: 'Geral',
       level: EffortLevel.HIGH,
       recurrenceUnit: 'none',
     });
@@ -64,6 +71,7 @@ describe('DynamoDB / DB Layer', () => {
     const id = `test-house-${crypto.randomUUID()}`;
     const created = await createTask(id, {
       title: 'Habit task',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
       isCompleted: false,
@@ -106,6 +114,7 @@ describe('DynamoDB / DB Layer', () => {
 
     const task = await createTask(id, {
       title: 'Daily vitamins',
+      place: 'Geral',
       level: EffortLevel.LOW,
       isCompleted: true,
       nextAvailableAt: pastTimestamp,
@@ -121,6 +130,7 @@ describe('DynamoDB / DB Layer', () => {
     const id = `test-house-${crypto.randomUUID()}`;
     await createTask(id, {
       title: 'Task to be wiped',
+      place: 'Geral',
       level: EffortLevel.LOW,
       recurrenceUnit: 'none',
     });

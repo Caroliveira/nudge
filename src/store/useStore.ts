@@ -7,10 +7,15 @@ import {
   deleteTaskAction,
   refreshRecurringTasksAction,
   recordTaskCompletionAction,
+  addPlaceAction,
+  renamePlaceAction,
+  deletePlaceAction,
 } from '@/app/actions';
 
-export const useStore = create<StoreState>()((set) => ({
+export const useStore = create<StoreState>()((set, get) => ({
   tasks: [],
+  places: [],
+  selectedPlaceFilter: null,
   currentTask: null,
   selectedLevel: null,
   currentStreak: 0,
@@ -22,6 +27,7 @@ export const useStore = create<StoreState>()((set) => ({
   initializeFromSSR: (tasks, profile, userEmail, userName) =>
     set({
       tasks,
+      ...(profile?.places ? { places: profile.places } : {}),
       ...(userEmail ? { userEmail } : {}),
       ...(userName ? { userName } : {}),
       ...(profile
@@ -34,6 +40,8 @@ export const useStore = create<StoreState>()((set) => ({
     }),
 
   setTasks: (tasks) => set({ tasks }),
+  setPlaces: (places) => set({ places }),
+  setSelectedPlaceFilter: (selectedPlaceFilter) => set({ selectedPlaceFilter }),
   setCurrentTask: (currentTask) => set({ currentTask }),
   setSelectedLevel: (selectedLevel) => set({ selectedLevel }),
   setBestStreak: (bestStreak) => set({ bestStreak }),
@@ -42,6 +50,8 @@ export const useStore = create<StoreState>()((set) => ({
   resetStore: () =>
     set({
       tasks: [],
+      places: [],
+      selectedPlaceFilter: null,
       currentTask: null,
       selectedLevel: null,
       currentStreak: 0,
@@ -89,11 +99,23 @@ export const useStore = create<StoreState>()((set) => ({
   addTask: (task) => {
     const taskWithCreated = {
       ...task,
+      place: task.place?.trim() || 'Geral',
       createdAt: task.createdAt ?? Date.now(),
     };
-    set((state) => ({
-      tasks: [taskWithCreated, ...state.tasks],
-    }));
+
+    set((state) => {
+      const newPlaces = state.places.some(
+        (p) => p.toLowerCase() === taskWithCreated.place.toLowerCase(),
+      )
+        ? state.places
+        : [...state.places, taskWithCreated.place];
+
+      return {
+        tasks: [taskWithCreated, ...state.tasks],
+        places: newPlaces,
+      };
+    });
+
     if (typeof window !== 'undefined') {
       createTaskAction(taskWithCreated).catch((err) =>
         console.error('Failed to persist task to DynamoDB', err),
@@ -102,12 +124,26 @@ export const useStore = create<StoreState>()((set) => ({
   },
 
   updateTask: (id, updates) => {
-    set((state) => ({
-      tasks: state.tasks.map((t) => {
-        if (t.id !== id) return t;
-        return { ...t, ...updates };
-      }),
-    }));
+    set((state) => {
+      const trimmedPlace = updates.place?.trim();
+      const newPlaces =
+        trimmedPlace && !state.places.some((p) => p.toLowerCase() === trimmedPlace.toLowerCase())
+          ? [...state.places, trimmedPlace]
+          : state.places;
+
+      return {
+        places: newPlaces,
+        tasks: state.tasks.map((t) => {
+          if (t.id !== id) return t;
+          return {
+            ...t,
+            ...updates,
+            ...(trimmedPlace ? { place: trimmedPlace } : {}),
+          };
+        }),
+      };
+    });
+
     if (typeof window !== 'undefined') {
       updateTaskAction(id, updates).catch((err) =>
         console.error('Failed to update task in DynamoDB', err),
@@ -124,6 +160,101 @@ export const useStore = create<StoreState>()((set) => ({
     if (typeof window !== 'undefined') {
       deleteTaskAction(id).catch((err) => console.error('Failed to delete task in DynamoDB', err));
     }
+  },
+
+  addPlace: async (placeName: string) => {
+    const trimmed = placeName.trim();
+    if (!trimmed) return;
+
+    set((state) => {
+      if (state.places.some((p) => p.toLowerCase() === trimmed.toLowerCase())) {
+        return state;
+      }
+      return { places: [...state.places, trimmed] };
+    });
+
+    if (typeof window !== 'undefined') {
+      try {
+        const updatedPlaces = await addPlaceAction(trimmed);
+        if (updatedPlaces && updatedPlaces.length > 0) {
+          set({ places: updatedPlaces });
+        }
+      } catch (err) {
+        console.error('Failed to add place to DynamoDB', err);
+      }
+    }
+  },
+
+  renamePlace: async (oldPlace: string, newPlace: string) => {
+    const oldTrimmed = oldPlace.trim();
+    const newTrimmed = newPlace.trim();
+    if (!oldTrimmed || !newTrimmed || oldTrimmed === newTrimmed) return;
+
+    set((state) => ({
+      places: state.places.map((p) =>
+        p.toLowerCase() === oldTrimmed.toLowerCase() ? newTrimmed : p,
+      ),
+      tasks: state.tasks.map((t) =>
+        t.place && t.place.toLowerCase() === oldTrimmed.toLowerCase()
+          ? { ...t, place: newTrimmed }
+          : t,
+      ),
+      selectedPlaceFilter:
+        state.selectedPlaceFilter?.toLowerCase() === oldTrimmed.toLowerCase()
+          ? newTrimmed
+          : state.selectedPlaceFilter,
+    }));
+
+    if (typeof window !== 'undefined') {
+      try {
+        await renamePlaceAction(oldTrimmed, newTrimmed);
+      } catch (err) {
+        console.error('Failed to rename place in DynamoDB', err);
+      }
+    }
+  },
+
+  deletePlace: async (placeName: string, reassignTo?: string) => {
+    const trimmed = placeName.trim();
+    const currentTasks = get().tasks;
+    const tasksUsingPlace = currentTasks.filter(
+      (t) => t.place && t.place.toLowerCase() === trimmed.toLowerCase(),
+    );
+
+    if (tasksUsingPlace.length > 0 && !reassignTo) {
+      return {
+        success: false,
+        error: 'place_in_use',
+        count: tasksUsingPlace.length,
+      };
+    }
+
+    const reassignTrimmed = reassignTo?.trim();
+
+    set((state) => ({
+      places: state.places.filter((p) => p.toLowerCase() !== trimmed.toLowerCase()),
+      tasks: reassignTrimmed
+        ? state.tasks.map((t) =>
+            t.place && t.place.toLowerCase() === trimmed.toLowerCase()
+              ? { ...t, place: reassignTrimmed }
+              : t,
+          )
+        : state.tasks,
+      selectedPlaceFilter:
+        state.selectedPlaceFilter?.toLowerCase() === trimmed.toLowerCase()
+          ? null
+          : state.selectedPlaceFilter,
+    }));
+
+    if (typeof window !== 'undefined') {
+      try {
+        return await deletePlaceAction(trimmed, reassignTrimmed);
+      } catch (err) {
+        console.error('Failed to delete place from DynamoDB', err);
+        return { success: false, error: 'network_error' };
+      }
+    }
+    return { success: true };
   },
 
   refreshRecurringTasks: () => {

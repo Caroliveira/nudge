@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import React from 'react';
 import { vi } from 'vitest';
 import en from './locales/en.json';
 
@@ -70,10 +71,14 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import React from 'react';
-
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: any) => {
     return React.createElement('a', { href, ...props }, children);
   },
+}));
+
+// Mock Next.js cache
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
 }));

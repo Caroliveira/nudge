@@ -44,14 +44,6 @@ import {
   UpdateUserNameSchema,
 } from '@/lib/schemas';
 
-function safeRevalidate(path = '/') {
-  try {
-    revalidatePath(path);
-  } catch {
-    // Graceful no-op outside Next.js request lifecycle
-  }
-}
-
 export async function recordTaskCompletionAction(
   completedAt = Date.now(),
 ): Promise<HouseholdProfile> {
@@ -61,7 +53,7 @@ export async function recordTaskCompletionAction(
   const updatedProfile = calculateNewStreak(profile, validCompletedAt);
   await saveHouseholdProfile(householdId, updatedProfile);
 
-  safeRevalidate('/');
+  revalidatePath('/');
   return updatedProfile;
 }
 
@@ -75,7 +67,7 @@ export async function createTaskAction(
     place: validated.place ?? 'Geral',
   });
 
-  safeRevalidate('/');
+  revalidatePath('/');
   return task;
 }
 
@@ -88,7 +80,7 @@ export async function updateTaskAction(
   const householdId = await getHouseholdId();
   const updated = await updateTask(householdId, validId, validUpdates);
 
-  safeRevalidate('/');
+  revalidatePath('/');
   return updated;
 }
 
@@ -97,7 +89,7 @@ export async function deleteTaskAction(taskId: string): Promise<void> {
   const householdId = await getHouseholdId();
   await deleteTask(householdId, validId);
 
-  safeRevalidate('/');
+  revalidatePath('/');
 }
 
 export async function toggleTaskAction(taskId: string) {
@@ -105,7 +97,7 @@ export async function toggleTaskAction(taskId: string) {
   const householdId = await getHouseholdId();
   const result = await toggleTaskCompletion(householdId, validId);
 
-  safeRevalidate('/');
+  revalidatePath('/');
   return result;
 }
 
@@ -122,7 +114,7 @@ export async function refreshRecurringTasksAction(): Promise<Task[]> {
   }
 
   const tasks = await refreshRecurringTasks(householdId);
-  safeRevalidate('/');
+  revalidatePath('/');
   return tasks;
 }
 
@@ -147,7 +139,7 @@ export async function loginAction(
       householdId: result.user.householdId,
     });
 
-    safeRevalidate('/');
+    revalidatePath('/');
     return { success: true };
   } catch (error: unknown) {
     console.error('[loginAction Error]', error);
@@ -178,7 +170,7 @@ export async function registerAction(
       householdId: result.user.householdId,
     });
 
-    safeRevalidate('/');
+    revalidatePath('/');
     return { success: true };
   } catch (error: unknown) {
     console.error('[registerAction Error]', error);
@@ -255,7 +247,7 @@ export async function resetPasswordAction(
 
 export async function logoutAction(): Promise<void> {
   await clearSessionCookie();
-  safeRevalidate('/');
+  revalidatePath('/');
 }
 
 export async function deleteAccountAction(): Promise<{ success: boolean; error?: string }> {
@@ -269,7 +261,7 @@ export async function deleteAccountAction(): Promise<{ success: boolean; error?:
       await deleteUserAccount(session.email);
     }
     await clearSessionCookie();
-    safeRevalidate('/');
+    revalidatePath('/');
     return { success: true };
   } catch (error: unknown) {
     console.error('[deleteAccountAction Error]', error);
@@ -303,7 +295,7 @@ export async function updateUserNameAction(
       householdId: updatedUser.householdId,
     });
 
-    safeRevalidate('/');
+    revalidatePath('/');
     return { success: true, name: updatedUser.name };
   } catch (error: unknown) {
     console.error('[updateUserNameAction Error]', error);
@@ -317,7 +309,7 @@ export async function addPlaceAction(place: string): Promise<string[]> {
   const householdId = await getHouseholdId();
   const places = await addHouseholdPlace(householdId, validPlace);
 
-  safeRevalidate('/');
+  revalidatePath('/');
   return places;
 }
 
@@ -334,7 +326,7 @@ export async function renamePlaceAction(
     const householdId = await getHouseholdId();
     await renameHouseholdPlace(householdId, parsed.data.oldPlace, parsed.data.newPlace);
 
-    safeRevalidate('/');
+    revalidatePath('/');
     return { success: true };
   } catch (error: unknown) {
     console.error('[renamePlaceAction Error]', error);
@@ -360,7 +352,7 @@ export async function deletePlaceAction(
       parsed.data.reassignTo,
     );
 
-    safeRevalidate('/');
+    revalidatePath('/');
     return result;
   } catch (error: unknown) {
     console.error('[deletePlaceAction Error]', error);

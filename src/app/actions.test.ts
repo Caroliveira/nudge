@@ -16,6 +16,7 @@ import {
 } from './actions';
 import { EffortLevel } from '@/types';
 import * as sessionModule from '@/lib/session';
+import { revalidatePath } from 'next/cache';
 
 vi.mock('@/lib/email', () => ({
   sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true }),
@@ -38,6 +39,7 @@ describe('actions.ts', () => {
     expect(task.id).toBeDefined();
     expect(task.title).toBe('Action Task');
     expect(task.place).toBe('Geral');
+    expect(revalidatePath).toHaveBeenCalledWith('/');
   });
 
   it('updates a task and returns the updated task', async () => {

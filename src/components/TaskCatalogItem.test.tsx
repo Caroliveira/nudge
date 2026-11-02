@@ -140,7 +140,7 @@ describe('TaskCatalogItem', () => {
     expect(mockOnDelete).toHaveBeenCalledWith('1');
   });
 
-  it('applies subtle orange styling for tasks overdue by double recurrence', () => {
+  it('applies subtle mustard yellow styling for tasks overdue by double recurrence', () => {
     const overdueDoubleTask: Task = {
       ...mockTask,
       recurrenceUnit: 'days',
@@ -155,8 +155,8 @@ describe('TaskCatalogItem', () => {
 
     const card = container.querySelector('[data-overdue="double"]');
     expect(card).toBeInTheDocument();
-    expect(card?.className).toContain('bg-orange/10');
-    expect(card?.className).toContain('border-orange/30');
+    expect(card?.className).toContain('bg-yellow/15');
+    expect(card?.className).toContain('border-yellow/35');
   });
 
   it('applies subtle red styling for tasks overdue by triple recurrence or more', () => {
@@ -198,7 +198,7 @@ describe('TaskCatalogItem', () => {
     const card = container.querySelector('[data-overdue="none"]');
     expect(card).toBeInTheDocument();
     expect(card?.className).toContain('bg-warm');
-    expect(card?.className).not.toContain('bg-orange/10');
+    expect(card?.className).not.toContain('bg-yellow/15');
     expect(card?.className).not.toContain('bg-red/10');
   });
 });

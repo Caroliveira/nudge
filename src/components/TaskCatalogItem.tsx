@@ -26,7 +26,7 @@ const TaskCatalogItem: React.FC<TaskCatalogItemProps> = ({ task, onToggle, onDel
     : overdueStatus === 'triple'
       ? 'bg-red/10 border-red/30 shadow-sm'
       : overdueStatus === 'double'
-        ? 'bg-orange/10 border-orange/30 shadow-sm'
+        ? 'bg-yellow/15 border-yellow/35 shadow-sm'
         : 'bg-surface border-transparent shadow-sm';
 
   const deleteAction = {

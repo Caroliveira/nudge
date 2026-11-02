@@ -415,9 +415,7 @@ const SettingsPage: React.FC = () => {
                         </div>
 
                         {isEditing && editPlaceError && (
-                          <p className="text-xs text-red-500 font-medium px-1">
-                            {editPlaceError}
-                          </p>
+                          <p className="text-xs text-red-500 font-medium px-1">{editPlaceError}</p>
                         )}
 
                         {/* Delete Confirmation Box */}
@@ -619,7 +617,9 @@ const SettingsPage: React.FC = () => {
                     >
                       <div className="font-bold">{lang.label}</div>
                       {i18n.resolvedLanguage === lang.code && (
-                        <div className="text-xs opacity-80 mt-1">{t('settings.language.current')}</div>
+                        <div className="text-xs opacity-80 mt-1">
+                          {t('settings.language.current')}
+                        </div>
                       )}
                     </button>
                   ))}
@@ -780,7 +780,9 @@ const SettingsPage: React.FC = () => {
                         <span className="text-[11px] font-medium uppercase tracking-wider text-soft block">
                           {t('auth.emailLabel', 'Seu e-mail')}
                         </span>
-                        <span className="text-sm text-soft font-mono block truncate">{userEmail}</span>
+                        <span className="text-sm text-soft font-mono block truncate">
+                          {userEmail}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -820,7 +822,10 @@ const SettingsPage: React.FC = () => {
                             <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
                             <div className="space-y-1">
                               <h4 className="text-sm font-semibold text-text">
-                                {t('auth.deleteAccountConfirmTitle', 'Excluir conta permanentemente?')}
+                                {t(
+                                  'auth.deleteAccountConfirmTitle',
+                                  'Excluir conta permanentemente?',
+                                )}
                               </h4>
                               <p className="text-xs text-soft leading-relaxed">
                                 {t(
@@ -857,7 +862,10 @@ const SettingsPage: React.FC = () => {
                                 <>
                                   <Trash2 className="w-3.5 h-3.5" />
                                   <span>
-                                    {t('auth.deleteAccountConfirmButton', 'Sim, excluir minha conta')}
+                                    {t(
+                                      'auth.deleteAccountConfirmButton',
+                                      'Sim, excluir minha conta',
+                                    )}
                                   </span>
                                 </>
                               )}

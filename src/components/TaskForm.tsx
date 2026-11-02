@@ -55,9 +55,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredPlaces = places.filter((p) =>
-    p.toLowerCase().includes(place.trim().toLowerCase()),
-  );
+  const filteredPlaces = places.filter((p) => p.toLowerCase().includes(place.trim().toLowerCase()));
 
   const handleSelectPlace = (selectedPlace: string) => {
     updatePlace(selectedPlace);
@@ -227,10 +225,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, onCancel, initialValues }
                 </div>
               ) : (
                 <p className="px-3 py-2 text-xs text-soft">
-                  {t(
-                    'form.noPlacesYet',
-                    'Nenhum lugar cadastrado ainda. Digite um nome acima!',
-                  )}
+                  {t('form.noPlacesYet', 'Nenhum lugar cadastrado ainda. Digite um nome acima!')}
                 </p>
               )}
             </motion.div>

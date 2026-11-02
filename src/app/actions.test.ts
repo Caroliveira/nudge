@@ -245,4 +245,31 @@ describe('actions.ts', () => {
       expect(result.error).toBe('unauthorized');
     });
   });
+
+  describe('Zod Schema Validation', () => {
+    it('rejects createTaskAction with empty title', async () => {
+      await expect(
+        createTaskAction({
+          title: '   ',
+          place: 'Geral',
+          level: EffortLevel.LOW,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('rejects createTaskAction with invalid effort level', async () => {
+      await expect(
+        createTaskAction({
+          title: 'Valid Task',
+          place: 'Geral',
+          // @ts-expect-error Testing runtime invalid value
+          level: 'EXTREME',
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('rejects updateTaskAction with empty taskId', async () => {
+      await expect(updateTaskAction('', { title: 'Updated' })).rejects.toThrow();
+    });
+  });
 });

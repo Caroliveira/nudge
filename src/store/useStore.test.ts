@@ -208,4 +208,85 @@ describe('useStore', () => {
     useStore.getState().setUserName('Novo Nome');
     expect(useStore.getState().userName).toBe('Novo Nome');
   });
+
+  describe('optimistic updates & rollback on server error', () => {
+    it('rolls back addTask when createTaskAction fails', async () => {
+      const actions = await import('@/app/actions');
+      vi.spyOn(actions, 'createTaskAction').mockRejectedValueOnce(new Error('Network error'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const initialTask: Task = {
+        id: 'initial-task',
+        title: 'Initial',
+        place: 'Geral',
+        level: EffortLevel.LOW,
+        createdAt: 100,
+      };
+      useStore.setState({ tasks: [initialTask], places: ['Geral'] });
+
+      useStore.getState().addTask({
+        id: 'new-task',
+        title: 'New',
+        place: 'Cozinha',
+        level: EffortLevel.HIGH,
+        createdAt: 200,
+      });
+
+      // Immediately optimistic
+      expect(useStore.getState().tasks).toHaveLength(2);
+
+      // Wait for promise rejection to handle rollback
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(useStore.getState().tasks).toHaveLength(1);
+      expect(useStore.getState().tasks[0].id).toBe('initial-task');
+      expect(useStore.getState().places).toEqual(['Geral']);
+    });
+
+    it('rolls back updateTask when updateTaskAction fails', async () => {
+      const actions = await import('@/app/actions');
+      vi.spyOn(actions, 'updateTaskAction').mockRejectedValueOnce(new Error('DB error'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const initialTask: Task = {
+        id: 'task-1',
+        title: 'Original Title',
+        place: 'Geral',
+        level: EffortLevel.LOW,
+        createdAt: 100,
+      };
+      useStore.setState({ tasks: [initialTask] });
+
+      useStore.getState().updateTask('task-1', { title: 'Changed Title' });
+      expect(useStore.getState().tasks[0].title).toBe('Changed Title');
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(useStore.getState().tasks[0].title).toBe('Original Title');
+    });
+
+    it('rolls back deleteTask when deleteTaskAction fails', async () => {
+      const actions = await import('@/app/actions');
+      vi.spyOn(actions, 'deleteTaskAction').mockRejectedValueOnce(new Error('Delete error'));
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const initialTask: Task = {
+        id: 'task-1',
+        title: 'Keep me',
+        place: 'Geral',
+        level: EffortLevel.LOW,
+        createdAt: 100,
+      };
+      useStore.setState({ tasks: [initialTask], currentTask: initialTask });
+
+      useStore.getState().deleteTask('task-1');
+      expect(useStore.getState().tasks).toHaveLength(0);
+
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(useStore.getState().tasks).toHaveLength(1);
+      expect(useStore.getState().tasks[0].id).toBe('task-1');
+      expect(useStore.getState().currentTask?.id).toBe('task-1');
+    });
+  });
 });

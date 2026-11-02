@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
+import { z } from 'zod';
 import { getHouseholdId, getSession, setSessionCookie, clearSessionCookie } from '@/lib/session';
 import {
   createTask,
@@ -29,8 +30,21 @@ import {
 } from '@/lib/auth';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { Task } from '@/types';
+import {
+  TaskCreateSchema,
+  TaskUpdateSchema,
+  TaskIdSchema,
+  PlaceNameSchema,
+  RenamePlaceSchema,
+  DeletePlaceSchema,
+  AuthLoginSchema,
+  AuthRegisterSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
+  UpdateUserNameSchema,
+} from '@/lib/schemas';
 
-function safeRevalidate(path: string) {
+function safeRevalidate(path = '/') {
   try {
     revalidatePath(path);
   } catch {
@@ -41,28 +55,27 @@ function safeRevalidate(path: string) {
 export async function recordTaskCompletionAction(
   completedAt = Date.now(),
 ): Promise<HouseholdProfile> {
+  const validCompletedAt = z.number().int().positive().default(Date.now()).parse(completedAt);
   const householdId = await getHouseholdId();
   const { profile } = await getHouseholdData(householdId);
-  const updatedProfile = calculateNewStreak(profile, completedAt);
+  const updatedProfile = calculateNewStreak(profile, validCompletedAt);
   await saveHouseholdProfile(householdId, updatedProfile);
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
-
   return updatedProfile;
 }
 
 export async function createTaskAction(
   taskData: Omit<Task, 'id' | 'createdAt'> & { createdAt?: number },
 ): Promise<Task> {
+  const validated = TaskCreateSchema.parse(taskData);
   const householdId = await getHouseholdId();
-  const task = await createTask(householdId, taskData);
+  const task = await createTask(householdId, {
+    ...validated,
+    place: validated.place ?? 'Geral',
+  });
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
-
   return task;
 }
 
@@ -70,33 +83,29 @@ export async function updateTaskAction(
   taskId: string,
   updates: Partial<Task>,
 ): Promise<Task | null> {
+  const validId = TaskIdSchema.parse(taskId);
+  const validUpdates = TaskUpdateSchema.parse(updates);
   const householdId = await getHouseholdId();
-  const updated = await updateTask(householdId, taskId, updates);
+  const updated = await updateTask(householdId, validId, validUpdates);
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
-
   return updated;
 }
 
 export async function deleteTaskAction(taskId: string): Promise<void> {
+  const validId = TaskIdSchema.parse(taskId);
   const householdId = await getHouseholdId();
-  await deleteTask(householdId, taskId);
+  await deleteTask(householdId, validId);
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
 }
 
 export async function toggleTaskAction(taskId: string) {
+  const validId = TaskIdSchema.parse(taskId);
   const householdId = await getHouseholdId();
-  const result = await toggleTaskCompletion(householdId, taskId);
+  const result = await toggleTaskCompletion(householdId, validId);
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
-
   return result;
 }
 
@@ -113,11 +122,7 @@ export async function refreshRecurringTasksAction(): Promise<Task[]> {
   }
 
   const tasks = await refreshRecurringTasks(householdId);
-
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/task');
-
   return tasks;
 }
 
@@ -126,7 +131,12 @@ export async function loginAction(
   password: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const result = await authenticateUser(email, password);
+    const parsed = AuthLoginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      return { success: false, error: 'invalid_credentials' };
+    }
+
+    const result = await authenticateUser(parsed.data.email, parsed.data.password);
     if (!result.success || !result.user) {
       return { success: false, error: result.error || 'invalid_credentials' };
     }
@@ -152,7 +162,12 @@ export async function registerAction(
   name?: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const result = await registerUser(email, password, name);
+    const parsed = AuthRegisterSchema.safeParse({ email, password, name });
+    if (!parsed.success) {
+      return { success: false, error: 'failed_to_register' };
+    }
+
+    const result = await registerUser(parsed.data.email, parsed.data.password, parsed.data.name);
     if (!result.success || !result.user) {
       return { success: false, error: result.error || 'failed_to_register' };
     }
@@ -175,12 +190,12 @@ export async function registerAction(
 export async function forgotPasswordAction(
   email: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const normalizedEmail = email ? email.trim().toLowerCase() : '';
-
-  if (!normalizedEmail || !emailRegex.test(normalizedEmail)) {
+  const parsed = ForgotPasswordSchema.safeParse({ email });
+  if (!parsed.success) {
     return { success: false, error: 'invalid_email' };
   }
+
+  const normalizedEmail = parsed.data.email;
 
   try {
     const user = await findUserByEmail(normalizedEmail);
@@ -221,7 +236,12 @@ export async function resetPasswordAction(
   newPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const result = await resetPasswordWithToken(token, newPassword);
+    const parsed = ResetPasswordSchema.safeParse({ token, newPassword });
+    if (!parsed.success) {
+      return { success: false, error: 'invalid_token' };
+    }
+
+    const result = await resetPasswordWithToken(parsed.data.token, parsed.data.newPassword);
     if (!result.success) {
       return { success: false, error: result.error || 'invalid_token' };
     }
@@ -267,12 +287,12 @@ export async function updateUserNameAction(
       return { success: false, error: 'unauthorized' };
     }
 
-    const trimmed = newName.trim();
-    if (!trimmed || trimmed.length < 2) {
+    const parsed = UpdateUserNameSchema.safeParse({ newName });
+    if (!parsed.success) {
       return { success: false, error: 'invalid_name' };
     }
 
-    const updatedUser = await updateUserName(session.email, trimmed);
+    const updatedUser = await updateUserName(session.email, parsed.data.newName);
     if (!updatedUser) {
       return { success: false, error: 'user_not_found' };
     }
@@ -284,8 +304,6 @@ export async function updateUserNameAction(
     });
 
     safeRevalidate('/');
-    safeRevalidate('/settings');
-
     return { success: true, name: updatedUser.name };
   } catch (error: unknown) {
     console.error('[updateUserNameAction Error]', error);
@@ -295,13 +313,11 @@ export async function updateUserNameAction(
 }
 
 export async function addPlaceAction(place: string): Promise<string[]> {
+  const validPlace = PlaceNameSchema.parse(place);
   const householdId = await getHouseholdId();
-  const places = await addHouseholdPlace(householdId, place);
+  const places = await addHouseholdPlace(householdId, validPlace);
 
   safeRevalidate('/');
-  safeRevalidate('/catalog');
-  safeRevalidate('/settings');
-
   return places;
 }
 
@@ -310,13 +326,15 @@ export async function renamePlaceAction(
   newPlace: string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const parsed = RenamePlaceSchema.safeParse({ oldPlace, newPlace });
+    if (!parsed.success) {
+      return { success: false, error: 'invalid_place' };
+    }
+
     const householdId = await getHouseholdId();
-    await renameHouseholdPlace(householdId, oldPlace, newPlace);
+    await renameHouseholdPlace(householdId, parsed.data.oldPlace, parsed.data.newPlace);
 
     safeRevalidate('/');
-    safeRevalidate('/catalog');
-    safeRevalidate('/settings');
-
     return { success: true };
   } catch (error: unknown) {
     console.error('[renamePlaceAction Error]', error);
@@ -330,13 +348,19 @@ export async function deletePlaceAction(
   reassignTo?: string,
 ): Promise<{ success: boolean; error?: string; count?: number }> {
   try {
+    const parsed = DeletePlaceSchema.safeParse({ place, reassignTo });
+    if (!parsed.success) {
+      return { success: false, error: 'invalid_place' };
+    }
+
     const householdId = await getHouseholdId();
-    const result = await deleteHouseholdPlace(householdId, place, reassignTo);
+    const result = await deleteHouseholdPlace(
+      householdId,
+      parsed.data.place,
+      parsed.data.reassignTo,
+    );
 
     safeRevalidate('/');
-    safeRevalidate('/catalog');
-    safeRevalidate('/settings');
-
     return result;
   } catch (error: unknown) {
     console.error('[deletePlaceAction Error]', error);

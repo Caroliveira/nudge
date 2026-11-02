@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Mail,
   Lock,
@@ -18,6 +20,14 @@ import {
 } from 'lucide-react';
 import { loginAction, registerAction, forgotPasswordAction } from '@/app/actions';
 import { APP_ROUTES } from '@/constants';
+import {
+  AuthLoginSchema,
+  AuthLoginInput,
+  AuthRegisterFormSchema,
+  AuthRegisterFormInput,
+  ForgotPasswordSchema,
+  ForgotPasswordInput,
+} from '@/lib/schemas';
 
 interface LoginPageProps {
   initialMode?: 'login' | 'register';
@@ -38,10 +48,6 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
     searchParams.get('mode') === 'register';
 
   const [mode, setMode] = useState<AuthMode>(isRegisterPath ? 'register' : 'login');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [forgotEmailSent, setForgotEmailSent] = useState<string | null>(null);
 
@@ -55,6 +61,39 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
   );
   const [errorType, setErrorType] = useState<string | null>(null);
 
+  // Login Form
+  const {
+    register: registerLogin,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors },
+  } = useForm<AuthLoginInput>({
+    resolver: zodResolver(AuthLoginSchema),
+    defaultValues: { email: '', password: '' },
+    mode: 'onTouched',
+  });
+
+  // Register Form
+  const {
+    register: registerRegister,
+    handleSubmit: handleRegisterSubmit,
+    formState: { errors: registerErrors },
+  } = useForm<AuthRegisterFormInput>({
+    resolver: zodResolver(AuthRegisterFormSchema),
+    defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
+    mode: 'onTouched',
+  });
+
+  // Forgot Password Form
+  const {
+    register: registerForgot,
+    handleSubmit: handleForgotSubmit,
+    formState: { errors: forgotErrors },
+  } = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(ForgotPasswordSchema),
+    defaultValues: { email: '' },
+    mode: 'onTouched',
+  });
+
   const handleSwitchMode = (newMode: AuthMode) => {
     setMode(newMode);
     setErrorMessage(null);
@@ -67,107 +106,12 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onLoginSubmit = async (data: AuthLoginInput) => {
+    setStatus('loading');
     setErrorMessage(null);
     setErrorType(null);
-
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail) return;
-
-    if (mode === 'forgot') {
-      setStatus('loading');
-      try {
-        const result = await forgotPasswordAction(trimmedEmail);
-        if (result.success) {
-          setForgotEmailSent(trimmedEmail);
-          setStatus('success');
-        } else {
-          setStatus('error');
-          setErrorType(result.error || null);
-          if (result.error === 'account_not_found') {
-            setErrorMessage(
-              t(
-                'auth.accountNotFound',
-                'Não encontramos uma conta com este e-mail. Crie uma conta na aba ao lado!',
-              ),
-            );
-          } else {
-            setErrorMessage(t('auth.invalidEmail', 'Por favor, insira um e-mail válido.'));
-          }
-        }
-      } catch {
-        setStatus('error');
-        setErrorMessage('Erro de conexão ao enviar link de recuperação.');
-      }
-      return;
-    }
-
-    if (mode === 'register') {
-      const trimmedName = name.trim();
-      if (!trimmedName || trimmedName.length < 2) {
-        setErrorMessage(
-          t('auth.invalidName', 'Por favor, informe seu nome (mínimo de 2 caracteres).'),
-        );
-        return;
-      }
-
-      if (password.length < 6) {
-        setErrorMessage(t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.'));
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        setErrorMessage(t('auth.passwordsDoNotMatch', 'As senhas não coincidem.'));
-        return;
-      }
-
-      setStatus('loading');
-      try {
-        const result = await registerAction(trimmedEmail, password, trimmedName);
-        if (result.success) {
-          router.push(APP_ROUTES.HOME);
-          router.refresh();
-        } else {
-          setStatus('error');
-          setErrorType(result.error || null);
-          if (result.error === 'account_already_exists') {
-            setErrorMessage(
-              t(
-                'auth.accountAlreadyExists',
-                'Este e-mail já possui cadastro. Acesse pela aba "Entrar"!',
-              ),
-            );
-          } else if (result.error === 'invalid_name') {
-            setErrorMessage(
-              t('auth.invalidName', 'Por favor, informe seu nome (mínimo de 2 caracteres).'),
-            );
-          } else if (result.error === 'password_too_short') {
-            setErrorMessage(
-              t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.'),
-            );
-          } else {
-            setErrorMessage(
-              result.error || t('auth.invalidEmail', 'Por favor, insira um e-mail válido.'),
-            );
-          }
-        }
-      } catch {
-        setStatus('error');
-        setErrorMessage('Erro de conexão ao criar sua conta.');
-      }
-      return;
-    }
-
-    // mode === 'login'
-    if (!password) {
-      setErrorMessage(t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.'));
-      return;
-    }
-
-    setStatus('loading');
     try {
-      const result = await loginAction(trimmedEmail, password);
+      const result = await loginAction(data.email, data.password);
       if (result.success) {
         router.push(APP_ROUTES.HOME);
         router.refresh();
@@ -192,6 +136,72 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
     } catch {
       setStatus('error');
       setErrorMessage('Erro de conexão ao entrar.');
+    }
+  };
+
+  const onRegisterSubmit = async (data: AuthRegisterFormInput) => {
+    setStatus('loading');
+    setErrorMessage(null);
+    setErrorType(null);
+    try {
+      const result = await registerAction(data.email, data.password, data.name);
+      if (result.success) {
+        router.push(APP_ROUTES.HOME);
+        router.refresh();
+      } else {
+        setStatus('error');
+        setErrorType(result.error || null);
+        if (result.error === 'account_already_exists') {
+          setErrorMessage(
+            t(
+              'auth.accountAlreadyExists',
+              'Este e-mail já possui cadastro. Acesse pela aba "Entrar"!',
+            ),
+          );
+        } else if (result.error === 'invalid_name') {
+          setErrorMessage(
+            t('auth.invalidName', 'Por favor, informe seu nome (mínimo de 2 caracteres).'),
+          );
+        } else if (result.error === 'password_too_short') {
+          setErrorMessage(t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.'));
+        } else {
+          setErrorMessage(
+            result.error || t('auth.invalidEmail', 'Por favor, insira um e-mail válido.'),
+          );
+        }
+      }
+    } catch {
+      setStatus('error');
+      setErrorMessage('Erro de conexão ao criar sua conta.');
+    }
+  };
+
+  const onForgotSubmit = async (data: ForgotPasswordInput) => {
+    setStatus('loading');
+    setErrorMessage(null);
+    setErrorType(null);
+    try {
+      const result = await forgotPasswordAction(data.email);
+      if (result.success) {
+        setForgotEmailSent(data.email);
+        setStatus('success');
+      } else {
+        setStatus('error');
+        setErrorType(result.error || null);
+        if (result.error === 'account_not_found') {
+          setErrorMessage(
+            t(
+              'auth.accountNotFound',
+              'Não encontramos uma conta com este e-mail. Crie uma conta na aba ao lado!',
+            ),
+          );
+        } else {
+          setErrorMessage(t('auth.invalidEmail', 'Por favor, insira um e-mail válido.'));
+        }
+      }
+    } catch {
+      setStatus('error');
+      setErrorMessage('Erro de conexão ao enviar link de recuperação.');
     }
   };
 
@@ -306,127 +316,107 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {errorMessage && (
-                <div
-                  role="alert"
-                  className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm space-y-2"
-                >
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                    <span>{errorMessage}</span>
-                  </div>
-                  {errorType === 'account_not_found' && mode !== 'register' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSwitchMode('register')}
-                      className="text-xs font-medium text-accent hover:underline pl-8 block"
-                    >
-                      Ir para a aba Criar conta →
-                    </button>
-                  )}
-                  {errorType === 'account_already_exists' && mode !== 'login' && (
-                    <button
-                      type="button"
-                      onClick={() => handleSwitchMode('login')}
-                      className="text-xs font-medium text-accent hover:underline pl-8 block"
-                    >
-                      Ir para a aba Entrar →
-                    </button>
-                  )}
+            {/* Alert */}
+            {errorMessage && (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm space-y-2 mb-4"
+              >
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <span>{errorMessage}</span>
                 </div>
-              )}
+                {errorType === 'account_not_found' && mode !== 'register' && (
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchMode('register')}
+                    className="text-xs font-medium text-accent hover:underline pl-8 block"
+                  >
+                    Ir para a aba Criar conta →
+                  </button>
+                )}
+                {errorType === 'account_already_exists' && mode !== 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => handleSwitchMode('login')}
+                    className="text-xs font-medium text-accent hover:underline pl-8 block"
+                  >
+                    Ir para a aba Entrar →
+                  </button>
+                )}
+              </div>
+            )}
 
-              {/* Name Input (Only on Register) */}
-              {mode === 'register' && (
-                <div className="fade-in">
+            {/* Login Form */}
+            {mode === 'login' && (
+              <form onSubmit={handleLoginSubmit(onLoginSubmit)} className="space-y-4">
+                <div>
                   <label
-                    htmlFor="name"
+                    htmlFor="login-email"
                     className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
                   >
-                    {t('auth.nameLabel', 'Seu nome')}
+                    {t('auth.emailLabel', 'Seu e-mail')}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
-                      <User className="w-4 h-4" />
+                      <Mail className="w-4 h-4" />
                     </div>
                     <input
-                      id="name"
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={t('auth.namePlaceholder', 'Como prefere ser chamado(a)?')}
-                      autoComplete="name"
+                      id="login-email"
+                      type="email"
+                      {...registerLogin('email')}
+                      placeholder={t('auth.emailPlaceholder', 'seu@email.com')}
+                      autoComplete="email"
                       autoFocus
                       disabled={status === 'loading'}
-                      className="w-full pl-10 pr-4 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
+                      aria-invalid={!!loginErrors.email}
+                      className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        loginErrors.email
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
                     />
                   </div>
+                  {loginErrors.email && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.invalidEmail', 'Por favor, insira um e-mail válido.')}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Email Input */}
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
-                >
-                  {t('auth.emailLabel', 'Seu e-mail')}
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('auth.emailPlaceholder', 'seu@email.com')}
-                    autoComplete="email"
-                    autoFocus={mode !== 'register'}
-                    disabled={status === 'loading'}
-                    className="w-full pl-10 pr-4 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              {/* Password Input (Login and Register) */}
-              {mode !== 'forgot' && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label
-                      htmlFor="password"
+                      htmlFor="login-password"
                       className="block text-xs font-medium uppercase tracking-wider text-soft"
                     >
                       {t('auth.passwordLabel', 'Sua senha')}
                     </label>
-                    {mode === 'login' && (
-                      <button
-                        type="button"
-                        onClick={() => handleSwitchMode('forgot')}
-                        className="text-xs text-soft hover:text-accent transition-colors"
-                      >
-                        {t('auth.forgotPassword', 'Esqueceu a senha?')}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchMode('forgot')}
+                      className="text-xs text-soft hover:text-accent transition-colors"
+                    >
+                      {t('auth.forgotPassword', 'Esqueceu a senha?')}
+                    </button>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
-                      id="password"
+                      id="login-password"
                       type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      {...registerLogin('password')}
                       placeholder={t('auth.passwordPlaceholder', 'Mínimo de 6 caracteres')}
-                      autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                      autoComplete="current-password"
                       disabled={status === 'loading'}
-                      className="w-full pl-10 pr-11 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
+                      aria-invalid={!!loginErrors.password}
+                      className={`w-full pl-10 pr-11 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        loginErrors.password
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
                     />
                     <button
                       type="button"
@@ -437,14 +427,151 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  {loginErrors.password && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.')}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Confirm Password Input (Only on Register) */}
-              {mode === 'register' && (
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent text-warm font-medium hover:bg-accent/90 transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none mt-2"
+                >
+                  {status === 'loading' ? (
+                    <span>{t('auth.loggingIn', 'Entrando...')}</span>
+                  ) : (
+                    <>
+                      <span>{t('auth.loginButton', 'Entrar')}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                <p className="text-center text-xs text-soft pt-2">
+                  {t('footerQuote', 'Seja intencional com sua energia.')}
+                </p>
+              </form>
+            )}
+
+            {/* Register Form */}
+            {mode === 'register' && (
+              <form onSubmit={handleRegisterSubmit(onRegisterSubmit)} className="space-y-4">
                 <div className="fade-in">
                   <label
-                    htmlFor="confirmPassword"
+                    htmlFor="register-name"
+                    className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
+                  >
+                    {t('auth.nameLabel', 'Seu nome')}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="register-name"
+                      type="text"
+                      {...registerRegister('name')}
+                      placeholder={t('auth.namePlaceholder', 'Como prefere ser chamado(a)?')}
+                      autoComplete="name"
+                      autoFocus
+                      disabled={status === 'loading'}
+                      aria-invalid={!!registerErrors.name}
+                      className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        registerErrors.name
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
+                    />
+                  </div>
+                  {registerErrors.name && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t(
+                        'auth.invalidName',
+                        'Por favor, informe seu nome (mínimo de 2 caracteres).',
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="register-email"
+                    className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
+                  >
+                    {t('auth.emailLabel', 'Seu e-mail')}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="register-email"
+                      type="email"
+                      {...registerRegister('email')}
+                      placeholder={t('auth.emailPlaceholder', 'seu@email.com')}
+                      autoComplete="email"
+                      disabled={status === 'loading'}
+                      aria-invalid={!!registerErrors.email}
+                      className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        registerErrors.email
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
+                    />
+                  </div>
+                  {registerErrors.email && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.invalidEmail', 'Por favor, insira um e-mail válido.')}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="register-password"
+                    className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
+                  >
+                    {t('auth.passwordLabel', 'Sua senha')}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="register-password"
+                      type={showPassword ? 'text' : 'password'}
+                      {...registerRegister('password')}
+                      placeholder={t('auth.passwordPlaceholder', 'Mínimo de 6 caracteres')}
+                      autoComplete="new-password"
+                      disabled={status === 'loading'}
+                      aria-invalid={!!registerErrors.password}
+                      className={`w-full pl-10 pr-11 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        registerErrors.password
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-soft hover:text-text transition-colors"
+                      aria-label={showPassword ? 'Ocultar senha' : 'Ver senha'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {registerErrors.password && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.')}
+                    </p>
+                  )}
+                </div>
+
+                <div className="fade-in">
+                  <label
+                    htmlFor="register-confirmPassword"
                     className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
                   >
                     {t('auth.confirmPasswordLabel', 'Confirmar senha')}
@@ -454,57 +581,105 @@ export default function LoginPage({ initialMode }: LoginPageProps = {}) {
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
-                      id="confirmPassword"
+                      id="register-confirmPassword"
                       type={showPassword ? 'text' : 'password'}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      {...registerRegister('confirmPassword')}
                       placeholder={t('auth.confirmPasswordPlaceholder', 'Repita sua senha')}
                       autoComplete="new-password"
                       disabled={status === 'loading'}
-                      className="w-full pl-10 pr-4 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
+                      aria-invalid={!!registerErrors.confirmPassword}
+                      className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        registerErrors.confirmPassword
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
                     />
                   </div>
+                  {registerErrors.confirmPassword && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.passwordsDoNotMatch', 'As senhas não coincidem.')}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={
-                  status === 'loading' ||
-                  !email.trim() ||
-                  (mode === 'register' && (!name.trim() || !password || !confirmPassword)) ||
-                  (mode === 'login' && !password)
-                }
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent text-warm font-medium hover:bg-accent/90 transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none mt-2"
-              >
-                {status === 'loading' ? (
-                  <span>
-                    {mode === 'forgot'
-                      ? t('auth.sendingRecoveryLink', 'Enviando link...')
-                      : mode === 'register'
-                        ? t('auth.sendingRegister', 'Criando sua conta...')
-                        : t('auth.loggingIn', 'Entrando...')}
-                  </span>
-                ) : (
-                  <>
-                    <span>
-                      {mode === 'forgot'
-                        ? t('auth.sendRecoveryLink', 'Enviar link de recuperação')
-                        : mode === 'register'
-                          ? t('auth.registerButton', 'Criar minha conta')
-                          : t('auth.loginButton', 'Entrar')}
-                    </span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent text-warm font-medium hover:bg-accent/90 transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none mt-2"
+                >
+                  {status === 'loading' ? (
+                    <span>{t('auth.sendingRegister', 'Criando sua conta...')}</span>
+                  ) : (
+                    <>
+                      <span>{t('auth.registerButton', 'Criar minha conta')}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
 
-              <p className="text-center text-xs text-soft pt-2">
-                {t('footerQuote', 'Seja intencional com sua energia.')}
-              </p>
-            </form>
+                <p className="text-center text-xs text-soft pt-2">
+                  {t('footerQuote', 'Seja intencional com sua energia.')}
+                </p>
+              </form>
+            )}
+
+            {/* Forgot Password Form */}
+            {mode === 'forgot' && (
+              <form onSubmit={handleForgotSubmit(onForgotSubmit)} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="forgot-email"
+                    className="block text-xs font-medium uppercase tracking-wider text-soft mb-1.5"
+                  >
+                    {t('auth.emailLabel', 'Seu e-mail')}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-soft">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      {...registerForgot('email')}
+                      placeholder={t('auth.emailPlaceholder', 'seu@email.com')}
+                      autoComplete="email"
+                      autoFocus
+                      disabled={status === 'loading'}
+                      aria-invalid={!!forgotErrors.email}
+                      className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                        forgotErrors.email
+                          ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                          : 'border-surface focus:ring-accent/40 focus:border-accent'
+                      }`}
+                    />
+                  </div>
+                  {forgotErrors.email && (
+                    <p className="text-xs text-red-500 mt-1 pl-1">
+                      {t('auth.invalidEmail', 'Por favor, insira um e-mail válido.')}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent text-warm font-medium hover:bg-accent/90 transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none mt-2"
+                >
+                  {status === 'loading' ? (
+                    <span>{t('auth.sendingRecoveryLink', 'Enviando link...')}</span>
+                  ) : (
+                    <>
+                      <span>{t('auth.sendRecoveryLink', 'Enviar link de recuperação')}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                <p className="text-center text-xs text-soft pt-2">
+                  {t('footerQuote', 'Seja intencional com sua energia.')}
+                </p>
+              </form>
+            )}
           </>
         )}
       </div>

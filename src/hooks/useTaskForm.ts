@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Task, EffortLevel, RecurrenceUnit } from '../types';
+import { TaskFormSchema } from '../lib/schemas';
 
 interface UseTaskFormProps {
   onSubmit: (task: Omit<Task, 'id'>) => void;
@@ -56,23 +57,20 @@ export const useTaskForm = ({ onSubmit, initialValues }: UseTaskFormProps) => {
     e.preventDefault();
     if (isSuccess) return;
 
-    const newErrors: Record<string, boolean> = {};
+    const validation = TaskFormSchema.safeParse({
+      title,
+      place,
+      level,
+      recurrenceUnit,
+      recurrenceInterval,
+    });
 
-    if (!title.trim()) {
-      newErrors.title = true;
-    }
-
-    if (!place.trim()) {
-      newErrors.place = true;
-    }
-
-    if (recurrenceUnit !== 'none') {
-      if (recurrenceInterval === '' || recurrenceInterval < 1) {
-        newErrors.recurrenceInterval = true;
+    if (!validation.success) {
+      const newErrors: Record<string, boolean> = {};
+      for (const issue of validation.error.issues) {
+        const field = issue.path[0] as string;
+        newErrors[field] = true;
       }
-    }
-
-    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }

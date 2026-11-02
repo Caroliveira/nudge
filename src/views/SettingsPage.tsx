@@ -25,6 +25,7 @@ import CsvExport from '@/components/CsvExport';
 import CsvImport from '@/components/CsvImport';
 import { useStore } from '@/store/useStore';
 import { logoutAction, deleteAccountAction, updateUserNameAction } from '@/app/actions';
+import { PlaceNameSchema, RenamePlaceSchema, UpdateUserNameSchema } from '@/lib/schemas';
 
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -72,11 +73,12 @@ const SettingsPage: React.FC = () => {
 
   const handleAddPlace = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = newPlaceInput.trim();
-    if (!trimmed) {
+    const validation = PlaceNameSchema.safeParse(newPlaceInput);
+    if (!validation.success) {
       setNewPlaceError(t('settings.places.emptyError', 'Digite um nome para o lugar.'));
       return;
     }
+    const trimmed = validation.data;
     if (places.some((p) => p.toLowerCase() === trimmed.toLowerCase())) {
       setNewPlaceError(t('settings.places.duplicateError', 'Este lugar já existe.'));
       return;
@@ -103,11 +105,15 @@ const SettingsPage: React.FC = () => {
   const handleSaveRenamePlace = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingPlace) return;
-    const trimmed = editPlaceInput.trim();
-    if (!trimmed) {
+    const validation = RenamePlaceSchema.safeParse({
+      oldPlace: editingPlace,
+      newPlace: editPlaceInput,
+    });
+    if (!validation.success) {
       setEditPlaceError(t('settings.places.emptyError', 'Digite um nome para o lugar.'));
       return;
     }
+    const { newPlace: trimmed } = validation.data;
     if (
       trimmed.toLowerCase() !== editingPlace.toLowerCase() &&
       places.some((p) => p.toLowerCase() === trimmed.toLowerCase())
@@ -169,8 +175,8 @@ const SettingsPage: React.FC = () => {
 
   const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmed = nameInput.trim();
-    if (trimmed.length < 2) {
+    const validation = UpdateUserNameSchema.safeParse({ newName: nameInput });
+    if (!validation.success) {
       setNameError(t('auth.nameMinLength', 'O nome deve ter pelo menos 2 caracteres.'));
       return;
     }
@@ -178,7 +184,7 @@ const SettingsPage: React.FC = () => {
     setIsSavingName(true);
     setNameError(null);
     try {
-      const result = await updateUserNameAction(trimmed);
+      const result = await updateUserNameAction(validation.data.newName);
       if (result.success && result.name) {
         setUserName(result.name);
         setIsEditingName(false);

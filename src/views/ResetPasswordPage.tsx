@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Lock,
   Eye,
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react';
 import { resetPasswordAction } from '@/app/actions';
 import { APP_ROUTES } from '@/constants';
+import { ResetPasswordFormSchema, ResetPasswordFormInput } from '@/lib/schemas';
 
 export default function ResetPasswordPage() {
   const { t } = useTranslation();
@@ -22,14 +25,24 @@ export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ResetPasswordFormInput>({
+    resolver: zodResolver(ResetPasswordFormSchema),
+    defaultValues: {
+      newPassword: '',
+      confirmNewPassword: '',
+    },
+    mode: 'onTouched',
+  });
+
+  const onSubmit = async (data: ResetPasswordFormInput) => {
     setErrorMessage(null);
 
     if (!token) {
@@ -42,19 +55,9 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setErrorMessage(t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.'));
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setErrorMessage(t('auth.passwordsDoNotMatch', 'As senhas não coincidem.'));
-      return;
-    }
-
     setStatus('loading');
     try {
-      const result = await resetPasswordAction(token, newPassword);
+      const result = await resetPasswordAction(token, data.newPassword);
       if (result.success) {
         setStatus('success');
       } else {
@@ -163,7 +166,7 @@ export default function ResetPasswordPage() {
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="flex items-center gap-2 pb-2 mb-2 border-b border-surface/50 text-xs text-soft">
               <KeyRound className="w-4 h-4 text-accent" />
               <span>
@@ -196,14 +199,17 @@ export default function ResetPasswordPage() {
                 <input
                   id="newPassword"
                   type={showPassword ? 'text' : 'password'}
-                  required
                   autoFocus
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
+                  {...register('newPassword')}
                   placeholder={t('auth.passwordPlaceholder', 'Mínimo de 6 caracteres')}
                   autoComplete="new-password"
                   disabled={status === 'loading'}
-                  className="w-full pl-10 pr-11 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
+                  aria-invalid={!!errors.newPassword}
+                  className={`w-full pl-10 pr-11 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                    errors.newPassword
+                      ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                      : 'border-surface focus:ring-accent/40 focus:border-accent'
+                  }`}
                 />
                 <button
                   type="button"
@@ -214,6 +220,11 @@ export default function ResetPasswordPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {errors.newPassword && (
+                <p className="text-xs text-red-500 mt-1 pl-1">
+                  {t('auth.passwordTooShort', 'A senha deve ter pelo menos 6 caracteres.')}
+                </p>
+              )}
             </div>
 
             {/* Confirm New Password */}
@@ -231,20 +242,28 @@ export default function ResetPasswordPage() {
                 <input
                   id="confirmNewPassword"
                   type={showPassword ? 'text' : 'password'}
-                  required
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  {...register('confirmNewPassword')}
                   placeholder={t('auth.confirmPasswordPlaceholder', 'Repita sua senha')}
                   autoComplete="new-password"
                   disabled={status === 'loading'}
-                  className="w-full pl-10 pr-4 py-3 bg-surface/50 border border-surface rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-all text-sm disabled:opacity-50"
+                  aria-invalid={!!errors.confirmNewPassword}
+                  className={`w-full pl-10 pr-4 py-3 bg-surface/50 border rounded-xl text-text placeholder:text-soft/60 focus:outline-none focus:ring-2 transition-all text-sm disabled:opacity-50 ${
+                    errors.confirmNewPassword
+                      ? 'border-red-500 focus:ring-red-500/40 focus:border-red-500'
+                      : 'border-surface focus:ring-accent/40 focus:border-accent'
+                  }`}
                 />
               </div>
+              {errors.confirmNewPassword && (
+                <p className="text-xs text-red-500 mt-1 pl-1">
+                  {t('auth.passwordsDoNotMatch', 'As senhas não coincidem.')}
+                </p>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={status === 'loading' || !newPassword || !confirmNewPassword}
+              disabled={status === 'loading'}
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-accent text-warm font-medium hover:bg-accent/90 transition-all shadow-sm active:scale-[0.99] disabled:opacity-50 disabled:pointer-events-none mt-2"
             >
               {status === 'loading' ? (

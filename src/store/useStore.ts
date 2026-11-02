@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { differenceInCalendarDays, isSameDay } from 'date-fns';
 import { StoreState } from '../types';
+import { calculateNewStreak } from '@/utils/streakUtils';
 import {
   createTaskAction,
   updateTaskAction,
@@ -69,21 +69,11 @@ export const useStore = create<StoreState>()((set, get) => ({
     };
 
     set((state) => {
-      const previousUpdate = state.streakLastUpdatedAt;
-
-      if (previousUpdate && isSameDay(previousUpdate, completedAt)) {
-        return state.currentStreak > state.bestStreak ? { bestStreak: state.currentStreak } : {};
-      }
-
-      const currentStreak =
-        previousUpdate && differenceInCalendarDays(completedAt, previousUpdate) === 1
-          ? state.currentStreak + 1
-          : 1;
-
+      const updated = calculateNewStreak(state, completedAt);
       return {
-        currentStreak,
-        bestStreak: Math.max(state.bestStreak, currentStreak),
-        streakLastUpdatedAt: completedAt,
+        currentStreak: updated.currentStreak,
+        bestStreak: updated.bestStreak,
+        streakLastUpdatedAt: updated.streakLastUpdatedAt,
       };
     });
 

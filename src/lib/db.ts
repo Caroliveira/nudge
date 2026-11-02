@@ -1,8 +1,10 @@
 import { QueryCommand, PutCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { differenceInCalendarDays, isSameDay } from 'date-fns';
 import { docClient, TABLE_NAME, isDynamoConfigured } from './dynamodb';
 import { Task, EffortLevel, RecurrenceUnit } from '@/types';
 import { calculateTaskCompletion } from '@/utils/taskUtils';
+import { calculateNewStreak } from '@/utils/streakUtils';
+
+export { calculateNewStreak };
 
 export const DEFAULT_PLACES = [
   'Cozinha',
@@ -331,10 +333,11 @@ export async function deleteHouseholdData(householdId: string): Promise<void> {
 
     const response = await docClient.send(queryCommand);
     const items = response.Items || [];
+    const validItems = items.filter((item) => item.PK && item.SK);
 
-    for (const item of items) {
-      if (item.PK && item.SK) {
-        await docClient.send(
+    await Promise.all(
+      validItems.map((item) =>
+        docClient.send(
           new DeleteCommand({
             TableName: TABLE_NAME,
             Key: {
@@ -342,9 +345,9 @@ export async function deleteHouseholdData(householdId: string): Promise<void> {
               SK: item.SK,
             },
           }),
-        );
-      }
-    }
+        ),
+      ),
+    );
   } catch (error) {
     console.error('[DynamoDB] Error deleting household data:', error);
     if (process.env.NODE_ENV === 'production') {
@@ -378,34 +381,6 @@ export async function toggleTaskCompletion(
   }
 
   return { task: updatedTask, profile: updatedProfile };
-}
-
-/**
- * Recalculates streak following the Nudge streak rules.
- */
-export function calculateNewStreak(
-  currentProfile: HouseholdProfile,
-  completedAt = Date.now(),
-): HouseholdProfile {
-  const previousUpdate = currentProfile.streakLastUpdatedAt;
-
-  if (previousUpdate && isSameDay(previousUpdate, completedAt)) {
-    return {
-      ...currentProfile,
-      bestStreak: Math.max(currentProfile.bestStreak, currentProfile.currentStreak),
-    };
-  }
-
-  const currentStreak =
-    previousUpdate && differenceInCalendarDays(completedAt, previousUpdate) === 1
-      ? currentProfile.currentStreak + 1
-      : 1;
-
-  return {
-    currentStreak,
-    bestStreak: Math.max(currentProfile.bestStreak, currentStreak),
-    streakLastUpdatedAt: completedAt,
-  };
 }
 
 /**
@@ -490,11 +465,14 @@ export async function renameHouseholdPlace(
 
   await saveHouseholdProfile(householdId, { ...profile, places: updatedPlaces });
 
-  // Update tasks that were assigned to oldPlaceName
-  for (const t of tasks) {
-    if (t.place && t.place.toLowerCase() === oldTrimmed.toLowerCase()) {
-      await updateTask(householdId, t.id, { place: newTrimmed });
-    }
+  // Concurrently update tasks that were assigned to oldPlaceName
+  const matchingTasks = tasks.filter(
+    (t) => t.place && t.place.toLowerCase() === oldTrimmed.toLowerCase(),
+  );
+  if (matchingTasks.length > 0) {
+    await Promise.all(
+      matchingTasks.map((t) => updateTask(householdId, t.id, { place: newTrimmed })),
+    );
   }
 }
 
@@ -525,9 +503,9 @@ export async function deleteHouseholdPlace(
       };
     }
     const targetPlace = reassignTo.trim();
-    for (const t of tasksUsingPlace) {
-      await updateTask(householdId, t.id, { place: targetPlace });
-    }
+    await Promise.all(
+      tasksUsingPlace.map((t) => updateTask(householdId, t.id, { place: targetPlace })),
+    );
   }
 
   const currentPlaces =
@@ -544,17 +522,15 @@ export async function deleteHouseholdPlace(
 export async function refreshRecurringTasks(householdId: string): Promise<Task[]> {
   const { tasks } = await getHouseholdData(householdId);
   const now = Date.now();
-  const updatedList: Task[] = [];
 
-  for (const t of tasks) {
-    if (t.isCompleted && t.nextAvailableAt && now >= t.nextAvailableAt) {
-      const refreshed: Task = { ...t, isCompleted: false, nextAvailableAt: undefined };
-      await updateTask(householdId, t.id, refreshed);
-      updatedList.push(refreshed);
-    } else {
-      updatedList.push(t);
-    }
-  }
-
-  return updatedList;
+  return await Promise.all(
+    tasks.map(async (t) => {
+      if (t.isCompleted && t.nextAvailableAt && now >= t.nextAvailableAt) {
+        const refreshed: Task = { ...t, isCompleted: false, nextAvailableAt: undefined };
+        await updateTask(householdId, t.id, refreshed);
+        return refreshed;
+      }
+      return t;
+    }),
+  );
 }

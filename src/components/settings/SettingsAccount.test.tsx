@@ -116,4 +116,57 @@ describe('SettingsAccount', () => {
       expect(mockPush).toHaveBeenCalledWith('/login');
     });
   });
+
+  it('cancels edit name and handles error when saving name fails', async () => {
+    const user = userEvent.setup();
+    (updateUserNameAction as any).mockRejectedValueOnce(new Error('Network error'));
+
+    render(<SettingsAccount />);
+    await user.click(screen.getByRole('button', { name: /Account/i }));
+
+    const editNameBtn = screen.getByRole('button', { name: /Edit name/i });
+    await user.click(editNameBtn);
+
+    // Cancel editing
+    const cancelBtn = screen.getByTitle(/Cancel/i);
+    await user.click(cancelBtn);
+    expect(screen.queryByDisplayValue('Lina Oliveira')).not.toBeInTheDocument();
+
+    // Re-open and submit error
+    await user.click(screen.getByRole('button', { name: /Edit name/i }));
+    const nameInput = screen.getByDisplayValue('Lina Oliveira');
+    await user.type(nameInput, ' Test');
+    await user.click(screen.getByRole('button', { name: /Save/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/An error occurred/i)).toBeInTheDocument();
+    });
+  });
+
+  it('cancels delete account and handles delete failure', async () => {
+    const user = userEvent.setup();
+    (deleteAccountAction as any).mockResolvedValueOnce({
+      success: false,
+      error: 'Delete rejected',
+    });
+
+    render(<SettingsAccount />);
+    await user.click(screen.getByRole('button', { name: /Account/i }));
+
+    await user.click(screen.getByRole('button', { name: /Delete account/i }));
+
+    // Cancel deletion
+    await user.click(screen.getByRole('button', { name: /Cancel/i }));
+    expect(
+      screen.queryByText(/Delete account permanently\?/i),
+    ).not.toBeInTheDocument();
+
+    // Re-trigger and fail
+    await user.click(screen.getByRole('button', { name: /Delete account/i }));
+    await user.click(screen.getByRole('button', { name: /Yes, delete my account/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Delete rejected')).toBeInTheDocument();
+    });
+  });
 });

@@ -121,4 +121,54 @@ describe('SettingsPlaces', () => {
       expect(mockDeletePlace).toHaveBeenCalledWith('Cozinha', 'Geral');
     });
   });
+
+  it('handles delete for place with 0 tasks, cancel, and error states', async () => {
+    const user = userEvent.setup();
+    mockDeletePlace.mockResolvedValueOnce({ success: false });
+    render(<SettingsPlaces />);
+
+    await user.click(screen.getByRole('button', { name: /House Places/i }));
+
+    // Geral has 0 tasks
+    const deleteGeralBtn = screen.getByRole('button', { name: /Delete Geral/i });
+    fireEvent.click(deleteGeralBtn);
+
+    expect(screen.getByText(/No tasks assigned/i)).toBeInTheDocument();
+
+    // Cancel deletion
+    await user.click(screen.getByRole('button', { name: /Cancel/i }));
+    expect(screen.queryByText(/No tasks assigned/i)).not.toBeInTheDocument();
+
+    // Re-trigger and fail
+    fireEvent.click(deleteGeralBtn);
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Failed to delete place/i)).toBeInTheDocument();
+    });
+  });
+
+  it('allows canceling rename and handles duplicate rename error', async () => {
+    const user = userEvent.setup();
+    render(<SettingsPlaces />);
+
+    await user.click(screen.getByRole('button', { name: /House Places/i }));
+
+    const renameButtons = screen.getAllByRole('button', { name: /Rename/i });
+    await user.click(renameButtons[0]);
+
+    // Cancel rename
+    await user.click(screen.getByTitle(/Cancel/i));
+    expect(screen.queryByDisplayValue('Geral')).not.toBeInTheDocument();
+
+    // Re-open and try duplicate name "Cozinha"
+    const freshRenameButtons = screen.getAllByRole('button', { name: /Rename/i });
+    await user.click(freshRenameButtons[0]);
+    const editInput = screen.getByDisplayValue('Geral');
+    await user.clear(editInput);
+    await user.type(editInput, 'Cozinha');
+    await user.click(screen.getByTitle(/Save/i));
+
+    expect(screen.getByText(/This place already exists/i)).toBeInTheDocument();
+  });
 });

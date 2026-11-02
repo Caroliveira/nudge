@@ -9,7 +9,7 @@ import { IMPORT_CONFIG } from '../constants';
 
 const CsvExport: React.FC = () => {
   const { t } = useTranslation();
-  const { tasks } = useStore();
+  const tasks = useStore((state) => state.tasks);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
 
   useEffect(() => {

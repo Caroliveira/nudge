@@ -11,6 +11,8 @@ vi.mock('../hooks/useTaskActions');
 
 describe('Celebration', () => {
   const mockBackToSelection = vi.fn();
+  const mockStore = (state: any) =>
+    (useStore as any).mockImplementation((selector?: any) => (selector ? selector(state) : state));
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -20,13 +22,13 @@ describe('Celebration', () => {
   });
 
   it('renders nothing if no level selected', () => {
-    (useStore as any).mockReturnValue({ selectedLevel: null });
+    mockStore({ selectedLevel: null });
     const { container } = render(<Celebration />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders correct content for LOW level', () => {
-    (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.LOW });
+    mockStore({ selectedLevel: EffortLevel.LOW });
     render(<Celebration />);
 
     expect(screen.getByText('Level Cleared')).toBeInTheDocument();
@@ -34,14 +36,14 @@ describe('Celebration', () => {
   });
 
   it('renders correct content for MEDIUM level', () => {
-    (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.MEDIUM });
+    mockStore({ selectedLevel: EffortLevel.MEDIUM });
     render(<Celebration />);
 
     expect(screen.getByText('Incredible Progress')).toBeInTheDocument();
   });
 
   it('renders correct content for HIGH level', () => {
-    (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.HIGH });
+    mockStore({ selectedLevel: EffortLevel.HIGH });
     render(<Celebration />);
 
     expect(screen.getByText('Absolute Powerhouse')).toBeInTheDocument();
@@ -49,7 +51,7 @@ describe('Celebration', () => {
 
   it('calls backToSelection when button clicked', async () => {
     const user = userEvent.setup();
-    (useStore as any).mockReturnValue({ selectedLevel: EffortLevel.LOW });
+    mockStore({ selectedLevel: EffortLevel.LOW });
     render(<Celebration />);
 
     await user.click(screen.getByText('Back to Start'));

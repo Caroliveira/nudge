@@ -16,7 +16,8 @@ import { APP_ROUTES } from '../constants';
 const TaskPage: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { currentTask, selectedLevel } = useStore();
+  const currentTask = useStore((state) => state.currentTask);
+  const selectedLevel = useStore((state) => state.selectedLevel);
   const { markTaskDone, backToSelection } = useTaskActions();
   const { isExhausted, refreshTask, resetLevel } = useTaskSession();
   const { availableCounts } = useTaskAvailability();

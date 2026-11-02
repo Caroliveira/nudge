@@ -14,7 +14,7 @@ const LEVEL_COLORS: Record<EffortLevel, string> = {
 
 const Celebration: React.FC = () => {
   const { t } = useTranslation();
-  const { selectedLevel } = useStore();
+  const selectedLevel = useStore((state) => state.selectedLevel);
   const { backToSelection } = useTaskActions();
 
   if (!selectedLevel) return null;

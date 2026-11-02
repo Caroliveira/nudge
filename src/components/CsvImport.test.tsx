@@ -23,9 +23,12 @@ describe('CsvImport', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockReturnValue({
-      tasks: mockTasks,
-      addTask: mockAddTask,
+    (useStore as any).mockImplementation((selector?: any) => {
+      const state = {
+        tasks: mockTasks,
+        addTask: mockAddTask,
+      };
+      return selector ? selector(state) : state;
     });
   });
 

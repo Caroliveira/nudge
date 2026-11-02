@@ -11,7 +11,8 @@ import { validateHeaders, processImportedTasks } from '../utils/csvUtils';
 
 const CsvImport: React.FC = () => {
   const { t } = useTranslation();
-  const { tasks, addTask } = useStore();
+  const tasks = useStore((state) => state.tasks);
+  const addTask = useStore((state) => state.addTask);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 

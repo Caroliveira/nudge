@@ -43,11 +43,14 @@ describe('useTaskSession', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockReturnValue({
-      tasks: mockTasks,
-      selectedLevel: EffortLevel.LOW,
-      currentTask: null,
-      setCurrentTask: mockSetCurrentTask,
+    (useStore as any).mockImplementation((selector?: any) => {
+      const state = {
+        tasks: mockTasks,
+        selectedLevel: EffortLevel.LOW,
+        currentTask: null,
+        setCurrentTask: mockSetCurrentTask,
+      };
+      return selector ? selector(state) : state;
     });
     (getTasksForLevel as any).mockReturnValue(mockTasks);
     (pickRandomTask as any).mockImplementation((tasks: Task[]) => tasks[0] || null);
@@ -59,11 +62,14 @@ describe('useTaskSession', () => {
   });
 
   it('adds currentTask to seenTaskIds on mount if present', () => {
-    (useStore as any).mockReturnValue({
-      tasks: mockTasks,
-      selectedLevel: EffortLevel.LOW,
-      currentTask: mockTasks[0],
-      setCurrentTask: mockSetCurrentTask,
+    (useStore as any).mockImplementation((selector?: any) => {
+      const state = {
+        tasks: mockTasks,
+        selectedLevel: EffortLevel.LOW,
+        currentTask: mockTasks[0],
+        setCurrentTask: mockSetCurrentTask,
+      };
+      return selector ? selector(state) : state;
     });
   });
 

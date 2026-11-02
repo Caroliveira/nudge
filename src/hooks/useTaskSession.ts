@@ -3,7 +3,10 @@ import { useStore } from '../store/useStore';
 import { getTasksForLevel, pickRandomTask } from '../utils/taskUtils';
 
 export function useTaskSession() {
-  const { tasks, selectedLevel, currentTask, setCurrentTask } = useStore();
+  const tasks = useStore((state) => state.tasks);
+  const selectedLevel = useStore((state) => state.selectedLevel);
+  const currentTask = useStore((state) => state.currentTask);
+  const setCurrentTask = useStore((state) => state.setCurrentTask);
   const [seenTaskIds, setSeenTaskIds] = useState<string[]>([]);
   const [isExhausted, setIsExhausted] = useState(false);
 

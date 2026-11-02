@@ -11,15 +11,13 @@ import { APP_ROUTES } from '../constants';
 
 export function useTaskActions() {
   const router = useRouter();
-  const {
-    tasks,
-    selectedLevel,
-    currentTask,
-    setSelectedLevel,
-    setCurrentTask,
-    updateTask,
-    recordTaskCompletion,
-  } = useStore();
+  const tasks = useStore((state) => state.tasks);
+  const selectedLevel = useStore((state) => state.selectedLevel);
+  const currentTask = useStore((state) => state.currentTask);
+  const setSelectedLevel = useStore((state) => state.setSelectedLevel);
+  const setCurrentTask = useStore((state) => state.setCurrentTask);
+  const updateTask = useStore((state) => state.updateTask);
+  const recordTaskCompletion = useStore((state) => state.recordTaskCompletion);
 
   const selectLevel = (level: EffortLevel) => {
     const candidates = getTasksForLevel(tasks, level);

@@ -9,7 +9,9 @@ import { useStore } from '../store/useStore';
 
 const CatalogReport: React.FC = () => {
   const { t } = useTranslation();
-  const { tasks, currentStreak, bestStreak } = useStore();
+  const tasks = useStore((state) => state.tasks);
+  const currentStreak = useStore((state) => state.currentStreak);
+  const bestStreak = useStore((state) => state.bestStreak);
   const stats = useCatalogStats(tasks, { currentStreak, bestStreak });
 
   if (tasks.length === 0) {

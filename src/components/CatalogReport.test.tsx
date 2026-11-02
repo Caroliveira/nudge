@@ -7,9 +7,14 @@ import { EffortLevel } from '../types';
 vi.mock('../hooks/useCatalogStats');
 const storeState = { tasks: [] as any[] };
 vi.mock('../store/useStore', () => ({
-  useStore: () => ({
-    tasks: storeState.tasks,
-  }),
+  useStore: (selector?: any) => {
+    const state = {
+      tasks: storeState.tasks,
+      currentStreak: 0,
+      bestStreak: 0,
+    };
+    return selector ? selector(state) : state;
+  },
 }));
 
 describe('CatalogReport', () => {

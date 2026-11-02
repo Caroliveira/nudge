@@ -29,12 +29,15 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('../store/useStore', () => ({
-  useStore: () => ({
-    tasks: storeState.tasks,
-    addTask: mockAddTask,
-    updateTask: mockUpdateTask,
-    deleteTask: mockDeleteTask,
-  }),
+  useStore: (selector?: (state: any) => any) => {
+    const state = {
+      tasks: storeState.tasks,
+      addTask: mockAddTask,
+      updateTask: mockUpdateTask,
+      deleteTask: mockDeleteTask,
+    };
+    return selector ? selector(state) : state;
+  },
 }));
 
 vi.mock('../hooks/useTaskActions', () => ({

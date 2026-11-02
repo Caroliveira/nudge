@@ -14,7 +14,7 @@ const emptySubscribe = () => () => {};
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
-  const { tasks } = useStore();
+  const tasks = useStore((state) => state.tasks);
   const { totalIncomplete } = useTaskAvailability();
   const mounted = useSyncExternalStore(
     emptySubscribe,

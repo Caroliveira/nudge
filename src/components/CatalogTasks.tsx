@@ -14,7 +14,10 @@ import { useTaskActions } from '../hooks/useTaskActions';
 const CatalogTasks: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { tasks, addTask, updateTask, deleteTask } = useStore();
+  const tasks = useStore((state) => state.tasks);
+  const addTask = useStore((state) => state.addTask);
+  const updateTask = useStore((state) => state.updateTask);
+  const deleteTask = useStore((state) => state.deleteTask);
   const { toggleTask } = useTaskActions();
   const [isAdding, setIsAdding] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);

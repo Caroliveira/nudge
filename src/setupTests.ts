@@ -13,10 +13,19 @@ if (!global.crypto) {
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+export const mockI18n = {
+  changeLanguage: vi.fn(() => Promise.resolve()),
+  language: 'en',
+};
+
 // Mock i18next
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, options?: any) => {
+    t: (key: string, optionsOrDefault?: any, possibleOptions?: any) => {
+      const options =
+        typeof optionsOrDefault === 'object' && optionsOrDefault !== null
+          ? optionsOrDefault
+          : possibleOptions;
       const keys = key.split('.');
       let value: any = en;
       for (const k of keys) {
@@ -47,10 +56,7 @@ vi.mock('react-i18next', () => ({
 
       return value || key;
     },
-    i18n: {
-      changeLanguage: () => new Promise(() => {}),
-      language: 'en',
-    },
+    i18n: mockI18n,
   }),
   initReactI18next: {
     type: '3rdParty',

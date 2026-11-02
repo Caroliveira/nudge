@@ -312,5 +312,16 @@
     "save": "Save",
     "cancel": "Cancel",
     "error": "An error occurred"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "The path you were looking for doesn't exist or has moved. Take a gentle breath and return home.",
+    "backHome": "Back to Home"
+  },
+  "error": {
+    "title": "Something Went Wrong",
+    "subtitle": "A momentary error occurred while loading this page. You can try again or return home.",
+    "retry": "Try Again",
+    "backHome": "Home"
   }
 }

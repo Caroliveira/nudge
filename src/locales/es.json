@@ -312,5 +312,16 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "error": "Ocurrió un error"
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "subtitle": "La ruta que buscabas no existe o se ha movido. Respira hondo y regresa al inicio.",
+    "backHome": "Volver al inicio"
+  },
+  "error": {
+    "title": "Algo salió mal",
+    "subtitle": "Ocurrió un error momentáneo al cargar esta página. Puedes intentarlo de nuevo o regresar al inicio.",
+    "retry": "Intentar de nuevo",
+    "backHome": "Inicio"
   }
 }

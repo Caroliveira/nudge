@@ -15,12 +15,16 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "cf:build": "node scripts/cf-build.mjs",
+    "cf:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "node scripts/cf-build.mjs && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1156.0",
     "@aws-sdk/lib-dynamodb": "^3.1156.0",
     "@hookform/resolvers": "^7.0.1",
+    "@opennextjs/cloudflare": "^1.20.17",
     "@tailwindcss/postcss": "^4.3.3",
     "@tanstack/react-query": "^5.105.1",
     "@types/qrcode": "^1.5.6",
@@ -29,7 +33,7 @@
     "i18next": "^25.8.7",
     "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.564.0",
-    "next": "^16.4.3",
+    "next": "^16.4.6",
     "papaparse": "^5.5.3",
     "postcss": "^8.5.31",
     "qrcode": "^1.5.4",
@@ -68,6 +72,7 @@
     "typescript-eslint": "^8.55.0",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^1.2.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.162.0"
   }
 }

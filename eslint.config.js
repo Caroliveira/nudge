@@ -7,7 +7,7 @@ import react from 'eslint-plugin-react';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', '.next', 'android', 'coverage'] },
+  { ignores: ['dist', '.next', '.open-next', '.wrangler', 'android', 'coverage'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

@@ -58,3 +58,9 @@ coverage/
 .agents
 *.tsbuildinfo
 AGENTS.md
+
+# Cloudflare / OpenNext
+.open-next
+.wrangler
+.dev.vars
+*.cf-build-bak
